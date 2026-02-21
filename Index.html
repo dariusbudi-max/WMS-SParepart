@@ -1,0 +1,3551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WMS SPAREPART-WH</title>
+    
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- jsPDF + AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- SheetJS -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-pI6…" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+
+  <!-- html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+    }
+
+    /* ============================= */
+    /* SCROLLBAR GLOBAL */
+    /* ============================= */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e2e8f0;
+    }
+
+    /* ============================= */
+    /* IMAGE */
+    /* ============================= */
+    .img-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f8fafc;
+      color: #cbd5e1;
+    }
+
+    .img-thumb {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background-color: #f3f4f6;
+    }
+
+    /* ============================= */
+    /* CART LAYOUT */
+    /* ============================= */
+    .cart-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .cart-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .cart-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background: white;
+    }
+
+    .cart-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 20px;
+    }
+
+    .cart-footer {
+      flex-shrink: 0;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    /* ============================= */
+    /* SLIDE ANIMATION (FIXED & CLEAN) */
+    /* ============================= */
+    .slide-enter-active,
+    .slide-leave-active {
+      transition: all 0.4s ease;
+    }
+
+    .slide-enter-from,
+    .slide-leave-to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .slide-enter-to,
+    .slide-leave-from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* ============================= */
+    /* FADE SLIDE */
+    /* ============================= */
+    .fade-slide-enter-active,
+    .fade-slide-leave-active {
+      transition: all 0.3s ease;
+    }
+
+    .fade-slide-enter-from,
+    .fade-slide-leave-to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    /* ============================= */
+    /* TRANSITION WIDTH */
+    /* ============================= */
+    .transition-width {
+      transition: width 0.4s ease-in-out, flex 0.4s ease-in-out;
+    }
+
+    /* ============================= */
+    /* WARNING PULSE */
+    /* ============================= */
+    @keyframes pulse-warning {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    .cursor-help {
+      animation: pulse-warning 2s infinite;
+    }
+
+    /* ============================= */
+    /* CUSTOM SCROLLBAR */
+    /* ============================= */
+    .custom-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+      border: 2px solid #f1f5f9;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .table-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* ============================= */
+    /* PRINT CLEAN */
+    /* ============================= */
+    @media print {
+      body {
+        background: white !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0;
+        padding: 0;
+      }
+
+      .custom-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+      }
+      .spinner-border {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 0.2em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border .75s linear infinite;
+      }
+      @keyframes spinner-border {
+        to { transform: rotate(360deg); }
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background-color: #000 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app" class="h-screen flex flex-col text-slate-800">
+  <iframe 
+  src="https://script.google.com/macros/s/AKfycbzEuxpPb2-2_HbHhPqx2spKwbTc8t5D0mpBM17gGzpJLhdvE8z9nfcYTnOZsvcC9AB_bQ/exec"
+  width="100%" 
+  height="600"
+  style="border:none;">
+</iframe>
+
+  <div v-if="loading" class="fixed inset-0 bg-white/60 z-[99] flex flex-col justify-center items-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p class="mt-2 font-bold text-slate-600">Process...</p>
+  </div>
+
+  <div v-if="!user" class="min-h-screen w-full flex items-center justify-center bg-[#0f172a] relative overflow-hidden font-sans selection:bg-blue-500 selection:text-white">
+  
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600/40 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-indigo-500/30 rounded-full blur-3xl opacity-50 animate-pulse delay-700"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.2)] border border-slate-100 p-8 md:p-10 relative z-10 transform transition-all duration-300 hover:scale-[1.01]">
+      
+      <div class="text-center mb-10">
+        <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center text-white shadow-lg shadow-blue-500/30 mb-4 transform rotate-3 hover:rotate-6 transition-transform">
+          <i class="fa-solid fa-cubes-stacked text-3xl"></i>
+        </div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight">PBB <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">SPAREPART</span></h1>
+        <p class="text-slate-400 text-xs font-bold tracking-widest uppercase mt-2">PT Bintang Indokarya Gemilang</p>
+      </div>
+
+      <div class="relative">
+        
+        <div v-if="!isLoggedIn && authMode === 'login'" class="space-y-5 animate-fade-in-up">
+          
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <i class="fa-regular fa-user text-lg"></i>
+            </span>
+            <input v-model="loginForm.username" @keyup.enter="handleLogin" type="text" placeholder="Username" 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:font-normal placeholder:text-slate-400">
+          </div>
+
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <i class="fa-solid fa-lock text-lg"></i>
+            </span>
+            <input v-model="loginForm.password" @keyup.enter="handleLogin" type="password" placeholder="Password" 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all placeholder:font-normal placeholder:text-slate-400">
+          </div>
+
+          <button @click="handleLogin" 
+            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transform transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 group">
+            <span>MASUK SYSTEM</span>
+            <i class="fa-solid fa-arrow-right-to-bracket group-hover:translate-x-1 transition-transform"></i>
+          </button>
+
+          <div class="text-center mt-6 pt-4 border-t border-slate-100">
+            <p class="text-slate-400 text-xs">Belum punya akses?</p>
+            <a href="#" @click.prevent="authMode='register'" class="inline-block mt-1 text-sm text-blue-600 font-bold hover:text-indigo-600 transition-colors">
+              Daftar Akun Baru
+            </a>
+          </div>
+        </div>
+
+        <div v-else class="space-y-5 animate-fade-in-up">
+          
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors">
+              <i class="fa-regular fa-id-card text-lg"></i>
+            </span>
+            <input v-model="regForm.nama" type="text" placeholder="Nama Lengkap" 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder:font-normal placeholder:text-slate-400">
+          </div>
+
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors">
+              <i class="fa-regular fa-user text-lg"></i>
+            </span>
+            <input v-model="regForm.username" type="text" placeholder="Buat Username" 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder:font-normal placeholder:text-slate-400">
+          </div>
+
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors">
+              <i class="fa-solid fa-lock text-lg"></i>
+            </span>
+            <input v-model="regForm.password" type="password" placeholder="Buat Password" 
+              class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold outline-none focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder:font-normal placeholder:text-slate-400">
+          </div>
+
+          <button @click="handleRegister" 
+            class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/30 transform transition-all duration-200 active:scale-95 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>DAFTAR SEKARANG</span>
+          </button>
+
+          <div class="text-center mt-6 pt-4 border-t border-slate-100">
+            <p class="text-slate-400 text-xs">Sudah terdaftar?</p>
+            <a href="#" @click.prevent="authMode='login'" class="inline-block mt-1 text-sm text-slate-500 font-bold hover:text-emerald-600 transition-colors">
+              <i class="fa-solid fa-arrow-left mr-1"></i> Kembali ke Login
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    <div class="absolute bottom-6 text-slate-500 text-[10px] font-medium opacity-50">
+      &copy; {{ new Date().getFullYear() }} SPAREPART-WH PT Bintang Indokarya Gemilang
+    </div>
+  </div>
+
+  <div v-else class="flex h-screen overflow-hidden">
+    
+    <aside :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
+          class="fixed md:relative z-50 w-72 h-full bg-[#0B1120] text-slate-300 transition-transform duration-300 md:translate-x-0 flex flex-col border-r border-slate-800 shadow-2xl">
+
+      <!-- Header Sidebar -->
+      <div class="h-20 flex items-center justify-between px-6 border-b border-slate-800/60 bg-[#0B1120]">
+        <div class="flex items-center gap-3">
+          <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+            <i class="fa-solid fa-cube text-sm"></i>
+          </div>
+          <div>
+            <h1 class="font-black text-white text-lg tracking-tight leading-none">PBB <span class="text-blue-500">SPAREPART</span></h1>
+            <p class="text-[10px] text-slate-500 font-medium tracking-widest uppercase">Inventory System</p>
+          </div>
+        </div>
+        <button @click="isSidebarOpen = false" class="md:hidden text-slate-400 hover:text-white transition-colors">
+          <i class="fa-solid fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+
+        <!-- Main Menu -->
+        <div class="mb-6">
+          <p class="px-4 text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-3">Main Menu</p>
+
+          <!-- Dashboard -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.dashboard"
+            @click="navTo('dashboard')"
+            :class="page === 'dashboard' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-chart-pie w-5 text-center transition-transform group-hover:scale-110"></i>
+            <span>Dashboard</span>
+            <i v-if="page === 'dashboard'" class="fa-solid fa-chevron-right ml-auto text-xs opacity-50"></i>
+          </a>
+
+          <!-- Transaksi -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.transaksi"
+            @click="navTo('transaksi')"
+            :class="page === 'transaksi' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-cart-shopping w-5 text-center transition-transform group-hover:scale-110"></i>
+            <span>Transaksi</span>
+          </a>
+
+          <!-- Stock Holding -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.barang"
+            @click="navTo('cek_stok')"
+            :class="page === 'cek_stok' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-boxes-stacked w-5 text-center transition-transform group-hover:scale-110"></i>
+            <span>Stock Holding</span>
+          </a>
+        </div>
+
+        <!-- Management Menu -->
+        <div v-if="['admin','staff','manager'].includes(user.role?.toLowerCase())" class="mb-6">
+          <p class="px-4 text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-3">Management</p>
+
+          <!-- Master Data -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.barang"
+            @click="navTo('master')"
+            :class="page === 'master' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-database w-5 text-center transition-transform group-hover:scale-110"></i>
+            <span>Master Data</span>
+          </a>
+
+          <!-- Kelola User -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.users"
+            @click="navTo('users')"
+            :class="page === 'users' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-users-gear w-5 text-center transition-transform group-hover:scale-110"></i>
+            <span>Kelola User</span>
+          </a>
+
+          <!-- Pembatalan -->
+          <a v-if="permissions[user.role?.toLowerCase()]?.pembatalan"
+            @click="navTo('pembatalan')"
+            :class="page === 'pembatalan' 
+                      ? 'bg-rose-600 text-white shadow-lg shadow-rose-900/50' 
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'"
+            class="group flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 font-medium mb-1">
+            <i class="fa-solid fa-ban w-5 text-center"></i>
+            <span>Pembatalan</span>
+          </a>
+        </div>
+
+        <!-- Team Chat -->
+        <button @click="openChat"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                :class="showChat ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-slate-50'">
+          <div class="relative">
+            <i class="fa-solid fa-comments"></i>
+            <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+          </div>
+          <span class="text-sm font-bold uppercase tracking-tight">Team Chat</span>
+        </button>
+
+      </nav>
+
+      <!-- Profile & Logout -->
+      <div class="p-4 border-t border-slate-800 bg-[#0f172a]">
+        <div class="relative group bg-slate-800/50 hover:bg-slate-800 rounded-2xl p-3 border border-slate-700/50 transition-all duration-300">
+          
+          <div class="flex items-center gap-3">
+            <div class="relative shrink-0">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-[#0B1120]">
+                {{ user?.nama?.charAt(0) || 'U' }}
+              </div>
+              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-[#0B1120]"></span>
+            </div>
+
+            <div @click="openProfile" class="flex-1 min-w-0 cursor-pointer">
+              <p class="text-sm font-bold text-white truncate group-hover:text-blue-400 transition-colors">{{ user.nama }}</p>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">{{ user.role }}</span>
+              </div>
+            </div>
+
+            <button @click="logout" class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all" title="Logout System">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <main class="flex-1 flex flex-col relative w-full overflow-hidden bg-slate-50">
+      <header class="md:hidden bg-white p-4 shadow-sm flex items-center justify-between z-30">
+        <button @click="isSidebarOpen = true" class="text-slate-600"><i class="fa-solid fa-bars text-xl"></i></button>
+        <span class="font-bold text-slate-800">WMS SPAREPART</span>
+        <div class="w-6"></div>
+      </header>
+
+      <div class="flex-1 overflow-auto p-4 lg:p-6">
+        
+        <div v-if="page === 'dashboard' && user.role !== 'VIEWER'" class="max-w-7xl mx-auto space-y-8 animate-fade-in">
+  
+          <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+              <h2 class="text-3xl font-black text-slate-800 tracking-tight">DASHBOARD</h2>
+              <div class="flex items-center gap-3 mt-1">
+                <p class="text-sm text-slate-500 font-medium">Overview & Aktivitas Gudang</p>
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  Live System
+                </span>
+              </div>
+            </div>
+            <button @click="fetchDashboard" 
+              class="group flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 hover:shadow-md hover:text-blue-600 transition-all duration-300 active:scale-95">
+              <i class="fa-solid fa-rotate-right text-slate-400 group-hover:rotate-180 transition-transform duration-500"></i>
+              <span class="text-sm font-bold text-slate-600 group-hover:text-blue-600">Refresh Data</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="relative bg-white p-6 rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] border border-slate-100 group hover:-translate-y-1 transition-transform duration-300 overflow-hidden">
+              <div class="absolute right-0 top-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity transform group-hover:scale-110">
+                <i class="fa-solid fa-box-open text-7xl text-blue-600"></i>
+              </div>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                  <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Item Aktif</span>
+              </div>
+              <div class="text-4xl font-black text-slate-800 tracking-tight">{{ dashData.totalItem || 0 }}</div>
+            </div>
+
+            <div class="relative bg-white p-6 rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] border border-slate-100 group hover:-translate-y-1 transition-transform duration-300 overflow-hidden">
+              <div class="absolute right-0 top-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity transform group-hover:scale-110">
+                <i class="fa-solid fa-cubes-stacked text-7xl text-emerald-600"></i>
+              </div>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
+                  <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Stok</span>
+              </div>
+              <div class="text-4xl font-black text-slate-800 tracking-tight">{{ dashData.totalStok || 0 }}</div>
+            </div>
+
+            <div class="relative bg-white p-6 rounded-3xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)] border border-slate-100 group hover:-translate-y-1 transition-transform duration-300 overflow-hidden">
+              <div class="absolute right-0 top-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity transform group-hover:scale-110">
+                <i class="fa-solid fa-scale-unbalanced text-7xl text-orange-500"></i>
+              </div>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2.5 rounded-xl" :class="dashData.selisihOpname > 0 ? 'bg-orange-50 text-orange-500' : 'bg-slate-50 text-slate-400'">
+                  <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Selisih Opname</span>
+              </div>
+              <div class="flex items-end gap-2">
+                <div class="text-4xl font-black tracking-tight" :class="dashData.selisihOpname > 0 ? 'text-orange-500' : 'text-slate-800'">
+                  {{ dashData.selisihOpname || 0 }}
+                </div>
+                <span v-if="dashData.selisihOpname > 0" class="text-xs font-bold text-orange-400 mb-1.5 animate-pulse">Periksa!</span>
+              </div>
+            </div>
+
+            <div class="relative p-6 rounded-3xl shadow-lg bg-gradient-to-br from-slate-800 to-slate-900 text-white flex flex-col justify-between overflow-hidden group">
+              <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 20px 20px;"></div>
+              <div class="relative z-10 flex justify-between items-start mb-4">
+                <div>
+                  <div class="text-[10px] font-bold uppercase text-slate-400 mb-1">Stok Menipis</div>
+                  <div class="text-3xl font-black text-white">{{ dashData.totalLowStock || 0 }} <span class="text-sm font-medium text-slate-400">Item</span></div>
+                </div>
+                <div v-if="dashData.totalLowStock > 0"
+                     @click="showLowStock = !showLowStock"
+                     class="cursor-pointer">
+                     <i class="fa-solid" :class="showLowStock ? 'fa-chevron-up' : 'fa-triangle-exclamation'"></i>
+                 </div>
+                <div v-else class="h-10 w-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/50">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+              </div>
+              <div class="relative z-10 mt-auto">
+                <label class="text-[9px] uppercase font-bold text-slate-400 mb-1 block">Filter Jenis</label>
+                <div class="relative">
+                  <select v-model="dashFilter.type" @change="fetchDashboard" 
+                    class="w-full bg-white/10 border border-white/20 text-white text-sm font-bold rounded-xl px-3 py-2 outline-none focus:bg-white/20 focus:border-white/40 transition cursor-pointer appearance-none">
+                    <option class="text-slate-800" value="ALL">Semua Aktivitas</option>
+                    <option class="text-slate-800" value="MASUK">Barang Masuk</option>
+                    <option class="text-slate-800" value="KELUAR">Barang Keluar</option>
+                    <option class="text-slate-800" value="UPDATE_LOKASI">Relokasi</option>
+                    <option class="text-slate-800" value="OPNAME">Stock Opname</option>
+                    <option class="text-slate-800" value="RETURN">Barang Return</option>
+                  </select>
+                  <div class="absolute right-3 top-2.5 pointer-events-none text-white/50">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🔴 LOW STOCK PR SECTION -->
+          <transition name="fade-slide">
+            <div v-if="showLowStock && lowStockItems && lowStockItems.length > 0" class="w-full">
+
+              <!-- Card Utama -->
+              <div class="bg-white rounded-3xl shadow-xl border border-red-100 overflow-hidden animate-fade-in-up">
+
+                <!-- Header Alert -->
+                <div class="p-6 border-b border-red-50 bg-gradient-to-r from-red-50 to-white flex flex-col md:flex-row justify-between items-center gap-4">
+
+                  <!-- Icon + Info -->
+                  <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center animate-pulse">
+                      <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-black text-slate-800 text-lg">Peringatan Stok Minimum</h3>
+                      <p class="text-xs text-slate-500 font-bold">
+                        Terdeteksi {{ lowStockItems.length }} item perlu restock (PR)
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Tombol Export -->
+                  <button 
+                    @click="downloadPRExcel" 
+                    :disabled="isExportingPR"
+                    class="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl shadow-lg shadow-red-200 transition-all active:scale-95 flex items-center gap-2 font-bold text-xs uppercase tracking-wider">
+
+                    <i class="fa-solid fa-file-excel text-lg" :class="{ 'fa-bounce': isExportingPR }"></i>
+                    <span>{{ isExportingPR ? 'Processing...' : 'Export Data PR (Excel)' }}</span>
+                  </button>
+
+                </div>
+
+                <!-- Tabel Stok -->
+                <div class="overflow-x-auto max-h-[300px] custom-scroll">
+                  <table class="w-full text-left border-collapse">
+                    <thead class="bg-red-600 text-white sticky top-0 z-10">
+                      <tr>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase tracking-wider">Kode</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase tracking-wider">Nama Barang</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase tracking-wider text-center">Stok Saat Ini</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase tracking-wider text-center">Min. Stok</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase tracking-wider text-right bg-red-800">Qty Request (PR)</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-red-50 text-sm">
+                      <tr v-for="(item, index) in lowStockItems" :key="item.kode + '-' + index" class="hover:bg-red-50/50 transition-colors">
+                        <td class="px-6 py-3 font-mono text-xs font-bold text-slate-600">{{ item.kode }}</td>
+                        <td class="px-6 py-3 font-bold text-slate-800">{{ item.nama }}</td>
+                        <td class="px-6 py-3 text-center font-bold text-red-600 bg-red-50/30">{{ item.stok }} {{ item.satuan || '' }}</td>
+                        <td class="px-6 py-3 text-center font-bold text-slate-500">{{ item.minStok }}</td>
+                        <td class="px-6 py-3 text-right font-black text-slate-800 bg-red-50/10">{{ item.qtyRequest }} {{ item.satuan || '' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </transition>
+
+          <div id="print-area" class="bg-white rounded-2xl shadow-2xl border-2 border-slate-200 overflow-hidden flex flex-col font-sans mb-10">
+  
+            <div class="px-6 py-6 border-b-4 border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white no-print">
+              <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="h-14 w-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-xl shadow-slate-200">
+                  <i class="fa-solid fa-layer-group text-2xl"></i>
+                </div>
+                <div>
+                  <h3 class="font-black text-slate-900 text-xl tracking-tight">Log Distribusi Sparepart</h3>
+                  <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] bg-indigo-50 px-2 py-0.5 rounded inline-block">
+                    {{ filteredHistory.length }} Records Found
+                  </p>
+                </div>
+              </div>
+
+              <div class="relative w-full md:w-[400px] group">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input v-model="searchQuery" type="text" placeholder="Cari Kode, Nama Barang, Dept, atau User..." 
+                  class="w-full pl-11 pr-11 py-3.5 bg-slate-100 border-2 border-transparent rounded-2xl text-sm font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 transition-all shadow-inner">
+                <button v-if="searchQuery" @click="searchQuery = ''" class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-rose-600">
+                  <i class="fa-solid fa-circle-xmark text-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="px-6 py-6 bg-slate-50 border-b-2 border-slate-200 grid grid-cols-1 md:grid-cols-12 gap-6 items-end no-print">
+              <div class="md:col-span-4 space-y-2">
+                <label class="text-[11px] font-black text-slate-700 uppercase tracking-widest ml-1">Periode Transaksi</label>
+                <div class="flex items-center gap-2 bg-white p-1.5 rounded-2xl border-2 border-slate-200 shadow-sm focus-within:border-indigo-600 transition-all">
+                  <input type="date" v-model="dashFilter.start" class="flex-1 text-xs font-black p-2 bg-transparent outline-none text-slate-900 cursor-pointer">
+                  <div class="w-[2px] h-4 bg-slate-200"></div>
+                  <input type="date" v-model="dashFilter.end" class="flex-1 text-xs font-black p-2 bg-transparent outline-none text-slate-900 cursor-pointer">
+                </div>
+              </div>
+
+              <div class="md:col-span-4 space-y-2 relative" id="dept-autocomplete-container">
+                <label class="text-[11px] font-black text-slate-700 uppercase tracking-widest ml-1">Filter Department</label>
+                
+                <div class="relative group">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+                        <i class="fa-solid fa-building-user text-sm"></i>
+                    </span>
+
+                    <input 
+                        type="text" 
+                        v-model="dashFilter.dept" 
+                        @focus="showDeptResultsReport = true"
+                        placeholder="Cari & Pilih Dept..." 
+                        class="w-full pl-11 pr-11 py-3.5 text-xs font-black rounded-2xl border-2 border-slate-200 outline-none focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-50/50 transition-all shadow-sm"
+                    >
+
+                    <button v-if="dashFilter.dept" 
+                        @click="dashFilter.dept = ''; showDeptResultsReport = false;" 
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-600 transition-colors">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+
+                    <div v-if="showDeptResultsReport" 
+                        class="absolute z-[100] w-full mt-2 bg-white border-2 border-slate-200 shadow-2xl rounded-2xl max-h-64 overflow-y-auto custom-scroll shadow-indigo-100">
+                        
+                        <div @click="dashFilter.dept = ''; showDeptResultsReport = false" 
+                            class="px-5 py-3 text-[10px] font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 cursor-pointer border-b border-slate-100 sticky top-0 z-10 transition-colors">
+                            <i class="fa-solid fa-layer-group mr-2"></i>SEMUA DEPARTMENT
+                        </div>
+
+                        <div v-if="filteredDeptsReport.length > 0">
+                            <div v-for="d in filteredDeptsReport" :key="d" 
+                                @click="dashFilter.dept = d; showDeptResultsReport = false"
+                                class="px-5 py-4 text-xs hover:bg-indigo-600 hover:text-white cursor-pointer border-b border-slate-50 text-slate-800 font-bold transition-all flex items-center justify-between group/item">
+                                <span>{{ d }}</span>
+                                <i class="fa-solid fa-chevron-right text-[10px] opacity-0 group-hover/item:opacity-100 transition-all"></i>
+                            </div>
+                        </div>
+
+                        <div v-else class="px-5 py-10 text-center text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-xl mb-2 opacity-20"></i>
+                            <p class="text-[10px] font-black uppercase tracking-tight">Dept "{{ dashFilter.dept }}" tidak ada dalam database</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+              <div class="md:col-span-4 flex gap-3">
+                <button @click="fetchDashboard" class="flex-[2] bg-indigo-600 text-white h-[50px] rounded-2xl font-black text-xs uppercase tracking-[0.15em] hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200">
+                  <i class="fa-solid fa-rotate mr-2"></i> Update
+                </button>
+                <button @click="printTable" class="px-5 bg-slate-900 text-white h-[50px] rounded-2xl font-black text-xs hover:bg-black active:scale-95 transition-all shadow-lg shadow-slate-300">
+                  <i class="fa-solid fa-print"></i>
+                </button>
+                <button @click="exportPivotPDF" class="px-5 bg-white text-rose-600 border-2 border-rose-600 h-[50px] rounded-2xl font-black text-xs hover:bg-rose-600 hover:text-white active:scale-95 transition-all shadow-lg shadow-rose-50">
+                  <i class="fa-solid fa-file-pdf text-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto overflow-y-auto max-h-[650px] custom-scroll bg-white">
+              <table class="w-full text-left border-collapse table-auto">
+                <thead class="sticky top-0 z-30 shadow-md">
+                  <tr class="bg-slate-900 text-white">
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800">Waktu & Admin</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800">Item Detail</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800">Jenis</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-right border-r border-slate-800">Qty</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-center border-r border-slate-800">Stock</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] border-r border-slate-800">Department</th>
+                    <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em]">Keterangan</th>
+                  </tr>
+                </thead>
+
+                <tbody class="divide-y-[3px] divide-slate-50">
+                  <tr v-for="(tx, index) in paginatedHistory" :key="index"
+                      class="group transition-all"
+                      :class="isVoid(tx) ? 'bg-rose-50/40 grayscale-[0.5]' : 'hover:bg-indigo-50/50'">
+
+                    <!-- Waktu & Admin -->
+                    <td class="px-6 py-5 border-r border-slate-50">
+                      <div class="flex items-center gap-3">
+                        <div class="h-10 w-10 rounded-xl font-black flex items-center justify-center text-[12px] border-2"
+                            :class="isVoid(tx) ? 'bg-rose-100 text-rose-400 border-rose-200' : 'bg-slate-100 text-slate-800 border-slate-200'">
+                          <i v-if="isVoid(tx)" class="fa-solid fa-ban"></i>
+                          <span v-else>{{ String(tx.user || '?').substring(0,2).toUpperCase() }}</span>
+                        </div>
+                        <div>
+                          <div class="font-black text-[13px] tracking-tight leading-none mb-1"
+                              :class="isVoid(tx) ? 'text-rose-400' : 'text-slate-900'">
+                            {{ tx.user }}
+                          </div>
+                          <div class="text-[10px] font-black text-slate-400">{{ tx.tanggal }}</div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Item Detail -->
+                    <td class="px-6 py-5 border-r border-slate-50">
+                      <div class="font-black text-[14px] leading-tight mb-1"
+                          :class="isVoid(tx) ? 'text-slate-400 line-through' : 'text-indigo-700'">
+                        {{ tx.nama }}
+                        <span v-if="isVoid(tx)" class="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full font-black uppercase border border-rose-200 shadow-sm flex items-center gap-1">
+                          <i class="fa-solid fa-ban text-[8px]"></i> VOID
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-mono font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 tracking-tighter">{{ tx.kode }}</span>
+                        <span v-if="tx.isLowStock && !isVoid(tx)" class="text-[9px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-black uppercase animate-pulse">Low</span>
+                      </div>
+                    </td>
+
+                    <!-- Jenis -->
+                    <td class="px-6 py-5 text-center border-r border-slate-50">
+                      <span v-if="isVoid(tx)"
+                            class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border-2 inline-block min-w-[80px] bg-white text-rose-500 border-rose-200">
+                        VOID / BATAL
+                      </span>
+                      <span v-else class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border-2 inline-block min-w-[80px]"
+                            :class="{
+                              'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-100': tx.jenis === 'MASUK',
+                              'bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-100': tx.jenis === 'KELUAR',
+                              'bg-slate-800 text-white border-slate-800': tx.jenis === 'UPDATE_LOKASI',
+                              'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-100': tx.jenis === 'OPNAME',
+                              'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-100': tx.jenis === 'RETURN'
+                            }">
+                        {{ tx.jenis === 'UPDATE_LOKASI' ? 'PINDAH' : tx.jenis }}
+                      </span>
+                    </td>
+
+                    <!-- Qty -->
+                    <td class="px-6 py-5 text-right border-r border-slate-50">
+                      <span class="text-[16px] font-mono font-black"
+                            :class="isVoid(tx)
+                                      ? 'text-slate-300 line-through'
+                                      : (tx.jenis === 'MASUK' || (tx.jenis === 'OPNAME' && tx.qty > 0)
+                                          ? 'text-emerald-600'
+                                          : (tx.qty < 0 || tx.jenis === 'KELUAR' ? 'text-rose-600' : 'text-slate-900'))">
+                        {{ tx.qty > 0 && tx.jenis !== 'KELUAR' ? '+' : '' }}{{ tx.qty }}
+                      </span>
+                    </td>
+
+                    <!-- Stock -->
+                    <td class="px-4 py-3 text-center border-r border-slate-50">
+                      <div class="flex items-center justify-center gap-2">
+                        <span :class="isVoid(tx) ? 'text-slate-300' : (tx.isLowStock ? 'text-red-600 font-bold' : 'text-gray-900 font-medium')">
+                          {{ tx.stokAkhir }}
+                        </span>
+                        <span v-if="tx.isLowStock && !isVoid(tx)" title="Stok Limit!" class="text-lg animate-pulse">⚠️</span>
+                      </div>
+                    </td>
+
+                    <!-- Department -->
+                    <td class="px-6 py-5 border-r border-slate-50">
+                      <button @click="dashFilter.dept = tx.dept; fetchDashboard();"
+                              :disabled="isVoid(tx)"
+                              class="text-[11px] font-black px-3 py-1.5 rounded-xl uppercase tracking-tighter transition-all border"
+                              :class="isVoid(tx)
+                                        ? 'text-slate-300 bg-slate-50 border-slate-100 cursor-not-allowed'
+                                        : 'text-indigo-700 bg-indigo-50 hover:bg-indigo-600 hover:text-white border-indigo-100'">
+                        {{ tx.dept || 'N/A' }}
+                      </button>
+                    </td>
+
+                    <!-- Keterangan -->
+                    <td class="px-6 py-5">
+                      <div class="text-[11px] leading-relaxed max-w-[200px] line-clamp-2"
+                          :class="isVoid(tx) ? 'text-rose-400 font-black italic' : 'font-bold text-slate-600'"
+                          :title="tx.ket">
+                        {{ tx.ket || '-' }}
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="page === 'transaksi'" class="h-full flex flex-col bg-slate-50 relative font-sans text-slate-600">
+
+          <div class="sticky top-0 z-40 px-3 py-3 md:px-6 md:py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 shadow-sm flex items-center gap-3">
+            
+            <div class="relative group w-20 md:w-24 flex-shrink-0 transition-all">
+              <div class="absolute -top-2 left-2 px-1 bg-white text-[10px] font-black text-indigo-500 uppercase tracking-wider z-10">
+                Qty
+              </div>
+              <input 
+                type="number" 
+                v-model.number="scanQty" 
+                min="1"
+                class="w-full h-12 text-center bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 font-black text-indigo-700 text-lg transition-all shadow-sm placeholder:text-slate-300"
+                placeholder="1"
+              >
+            </div>
+
+            <div class="flex-1 relative group">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-barcode text-slate-400 group-focus-within:text-indigo-500 transition-colors text-lg"></i>
+              </div>
+              <input
+                ref="scanInput"
+                v-model="searchQuery"
+                @keyup.enter="handleScan"
+                type="text"
+                placeholder="Scan Barcode / Cari Nama Barang..."
+                class="w-full h-12 pl-12 pr-10 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 font-semibold text-slate-700 shadow-sm transition-all placeholder:text-slate-400 placeholder:font-normal"
+              />
+              
+              <button 
+                v-if="searchQuery" 
+                @click="clearSearch"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-300 hover:text-rose-500 transition-colors cursor-pointer"
+              >
+                <i class="fa-solid fa-circle-xmark text-lg"></i>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                v-if="role !== 'viewer'"
+                @click="openScanner"
+                class="w-12 h-12 flex-shrink-0 bg-slate-800 text-white rounded-xl hover:bg-slate-900 hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center border border-slate-700"
+                title="Buka Scanner Kamera"
+              >
+                <i class="fa-solid fa-qrcode text-xl"></i>
+              </button>
+
+              <button
+                v-if="role !== 'viewer'"
+                @click="showCart = !showCart"
+                class="relative w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center transition-all hover:-translate-y-0.5 active:scale-95 shadow-md"
+                :class="showCart ? 'bg-indigo-600 text-white shadow-indigo-200 ring-2 ring-indigo-200 ring-offset-1' : 'bg-white text-indigo-600 border border-slate-100'"
+              >
+                <i class="fa-solid fa-cart-shopping text-xl"></i>
+                <span
+                  v-if="cart.length"
+                  class="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-bold h-5 min-w-[20px] px-1 flex items-center justify-center rounded-full border-2 border-white shadow-sm animate-bounce"
+                >
+                  {{ cart.length }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+            <div
+              class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar scroll-smooth"
+              :class="showCart ? 'lg:pr-4' : ''"
+            >
+              <div v-if="searchResults.length > 0" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 pb-24 lg:pb-0">
+                <div
+                  v-for="item in searchResults"
+                  :key="item.kode"
+                  @click="addToCart(item)"
+                  class="group bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col relative h-full"
+                >
+                  <div class="absolute top-3 right-3 z-10">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm border border-white/50 backdrop-blur-md"
+                      :class="item.stok > 0 ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'">
+                      {{ item.stok > 0 ? item.stok + ' ' + item.satuan : 'HABIS' }}
+                    </span>
+                  </div>
+
+                  <div class="aspect-[4/3] bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                    <img
+                      v-if="item.foto && !item.imgFailed"
+                      :src="item.foto"
+                      @error="imgError(item)"
+                      class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                    >
+                    <div v-else class="text-slate-300 flex flex-col items-center">
+                      <i class="fa-regular fa-image text-4xl mb-2 opacity-50"></i>
+                      <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">No Image</span>
+                    </div>
+                    
+                    <div class="absolute inset-0 bg-indigo-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                      <div class="bg-white text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center shadow-lg transform scale-50 group-hover:scale-100 transition-all duration-300">
+                        <i class="fa-solid fa-plus text-lg"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <p class="text-[10px] font-mono text-slate-400 mb-1 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> {{ item.kode }}
+                      </p>
+                      <h4 class="font-bold text-slate-700 text-sm leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">{{ item.nama }}</h4>
+                    </div>
+                    
+                    <div class="mt-3 pt-3 border-t border-slate-50 flex justify-between items-end">
+                      <div class="flex items-center gap-1.5 text-slate-400">
+                          <i class="fa-solid fa-location-dot text-[10px]"></i>
+                          <span class="text-[10px] font-bold uppercase tracking-wide">{{ item.lokasi || '-' }}</span>
+                      </div>
+                      <div class="text-indigo-500 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-xs font-bold">
+                        Tambahkan <i class="fa-solid fa-arrow-right ml-1"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else-if="!searchQuery" class="h-full flex flex-col items-center justify-center text-center p-8 opacity-60 min-h-[50vh]">
+                <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6 animate-[pulse_3s_infinite]">
+                  <i class="fa-solid fa-basket-shopping text-4xl text-indigo-300"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700">Siap Bertransaksi?</h3>
+                <p class="text-sm text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">Gunakan kolom pencarian atau scan barcode untuk memulai transaksi.</p>
+              </div>
+
+              <div v-else class="h-full flex flex-col items-center justify-center text-center p-8 min-h-[50vh]">
+                <div class="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <i class="fa-solid fa-box-open text-3xl text-rose-300"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-700">Tidak Ditemukan</h3>
+                <p class="text-sm text-slate-500 mt-1">Coba kata kunci lain atau cek kode barang.</p>
+              </div>
+            </div>
+
+            <div 
+              v-if="showCart && role !== 'viewer'" 
+              class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-30 lg:hidden transition-opacity"
+              @click="showCart = false"
+            ></div>
+
+            <transition 
+              enter-active-class="transform transition ease-out duration-300"
+              enter-from-class="translate-y-full lg:translate-y-0 lg:translate-x-full"
+              enter-to-class="translate-y-0 lg:translate-x-0"
+              leave-active-class="transform transition ease-in duration-200"
+              leave-from-class="translate-y-0 lg:translate-x-0"
+              leave-to-class="translate-y-full lg:translate-y-0 lg:translate-x-full"
+            >
+              <div
+                v-if="showCart && role !== 'viewer'"
+                class="fixed inset-x-0 bottom-0 h-[85vh] lg:static lg:h-auto lg:w-[400px] bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] lg:shadow-[-5px_0_15px_rgba(0,0,0,0.05)] lg:border-l border-slate-200 z-40 flex flex-col rounded-t-3xl lg:rounded-none"
+              >
+                <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-white rounded-t-3xl lg:rounded-none sticky top-0 z-10">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <i class="fa-solid fa-receipt text-lg"></i>
+                    </div>
+                    <div>
+                      <h3 class="font-bold text-slate-800 leading-tight">Daftar Item</h3>
+                      <p class="text-xs text-slate-500 font-medium">{{ cart.length }} Barang terpilih</p>
+                    </div>
+                  </div>
+                  <button @click="showCart = false" class="lg:hidden w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+                    <i class="fa-solid fa-chevron-down"></i>
+                  </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 custom-scrollbar">
+                  <div v-if="cart.length === 0" class="h-full flex flex-col items-center justify-center text-slate-400 space-y-4 py-10">
+                    <div class="w-16 h-16 border-2 border-dashed border-slate-300 rounded-2xl flex items-center justify-center">
+                      <i class="fa-solid fa-cart-arrow-down text-2xl opacity-40"></i>
+                    </div>
+                    <p class="text-sm font-medium">Keranjang masih kosong</p>
+                  </div>
+
+                  <div v-for="(item, index) in cart" :key="item.kode" class="flex gap-3 bg-white p-3 pr-4 rounded-2xl border border-slate-100 shadow-sm group hover:border-indigo-200 transition-colors">
+                    <div class="w-12 h-12 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden hidden sm:block">
+                      <img v-if="item.foto" :src="item.foto" class="w-full h-full object-cover">
+                      <div v-else class="w-full h-full flex items-center justify-center text-slate-300"><i class="fa-regular fa-image"></i></div>
+                    </div>
+
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                      <h4 class="font-bold text-sm text-slate-700 truncate leading-tight mb-1">{{ item.nama }}</h4>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">{{ item.kode }}</span>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-col items-end justify-between gap-1 pl-2 border-l border-slate-50">
+                      <button 
+                        @click="cart.splice(index, 1)" 
+                        class="text-slate-300 hover:text-rose-500 transition-colors text-xs p-1"
+                        title="Hapus Item"
+                      >
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                      <input
+                        v-model.number="item.qty"
+                        type="number"
+                        min="1"
+                        class="w-14 py-1 px-1 text-center text-sm font-bold border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50 text-indigo-700"
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-5 bg-white border-t border-slate-200 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] space-y-4 pb-8 lg:pb-5">
+                  
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1 block">Jenis</label>
+                        <div class="relative">
+                          <select v-model="txType" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold py-2.5 pl-8 pr-6 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                            <option value="KELUAR">OUTBOUND</option>
+                            <option value="MASUK">INBOUND</option>
+                            <option value="RETURN">RETURN</option>
+                            <option value="OPNAME">OPNAME</option>
+                          </select>
+                          <i class="fa-solid fa-exchange-alt text-indigo-500 absolute left-3 top-3 text-xs"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1 mb-1 block">Dept/Cell</label>
+                        <div class="relative">
+                            <input 
+                              type="text"
+                              v-model="deptSearch"
+                              @focus="showDeptList = true"
+                              @input="showDeptList = true" 
+                              placeholder="Cari & Pilih Department..."
+                              class="w-full bg-slate-50 border border-slate-200 py-2.5 pl-8 pr-2 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition-all truncate"
+                            >
+                            <i class="fa-solid fa-building-user text-indigo-500 absolute left-3 top-3 text-xs"></i>
+
+                            <i 
+                              v-if="deptSearch"
+                              @click="clearDept"
+                              class="fa-solid fa-circle-xmark text-xs text-slate-400 hover:text-rose-500 cursor-pointer absolute right-3 top-3 transition-all">
+                            </i>
+                            
+                            <div v-if="showDeptList && filteredDepts.length" class="absolute bottom-full mt-1 left-0 w-[180%] bg-white border border-slate-200 rounded-xl shadow-xl max-h-48 overflow-y-auto z-50">
+                                <div v-for="dept in filteredDepts" :key="dept" @click="selectDept(dept)" class="px-3 py-2 text-xs font-bold text-slate-600 hover:bg-indigo-50 cursor-pointer border-b border-slate-50">
+                                  {{ dept }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <input
+                      v-model="txNote"
+                      placeholder="Catatan Transaksi (Doc BC/Reservasi)..."
+                      class="w-full bg-slate-50 border border-slate-200 py-3 px-4 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                    >
+                  </div>
+
+                  <button 
+                    @click="processTx" 
+                    :disabled="cart.length === 0 || !txDept" 
+                    class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white shadow-lg transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                    :class="cart.length > 0 && txDept ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 hover:shadow-indigo-300' : 'bg-slate-400'"
+                  >
+                    <span>Proses</span>
+                    <i class="fa-solid fa-paper-plane group-hover:translate-x-1 transition-transform"></i>
+                  </button>
+                </div>
+              </div>
+            </transition>
+
+          </div>
+        </div>
+
+        <div v-if="page === 'cek_stok'" class="max-w-7xl mx-auto space-y-6">
+    
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+              
+              <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                  <i class="fa-solid fa-boxes-stacked text-blue-600"></i> Cek Stock
+              </h2>
+
+              <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                  
+                  <select v-model="filterCategory" class="px-4 py-3 border border-slate-200 rounded-full shadow-sm outline-none focus:ring-2 focus:ring-blue-100 text-slate-600 bg-slate-50 cursor-pointer hover:bg-white transition">
+                      <option value="ALL">Semua Kategori</option>
+                      <option v-for="cat in categoryList" :key="cat" :value="cat">{{ cat }}</option>
+                  </select>
+
+                  <div class="relative w-full md:w-64">
+                      <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                      <input v-model="searchQuery" @input="handleSearch" type="text" placeholder="Cari Kode/Nama..." 
+                          class="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-full shadow-sm outline-none focus:ring-2 focus:ring-blue-100 transition">
+                  </div>
+
+                  <button @click="downloadStockExcel" :disabled="isExporting" 
+                      class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                      <i class="fa-solid fa-file-excel" :class="{'fa-bounce': isExporting}"></i> 
+                      <span v-text="isExporting ? 'Memproses...' : 'Export Excel'"></span>
+                  </button>
+              </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div v-for="item in searchResults" :key="item.kode" 
+                  class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition group">
+                  
+                  <div class="h-48 w-full bg-slate-100 relative overflow-hidden">
+                      <img v-if="item.foto && !item.imgFailed" :src="item.foto" 
+                          @click.stop="previewImg = item.foto" 
+                          @error="imgError(item)" 
+                          class="w-full h-full object-cover transition duration-500 group-hover:scale-110 cursor-zoom-in">
+                      
+                      <div v-else class="w-full h-full img-placeholder flex flex-col items-center justify-center">
+                          <i class="fa-solid fa-image text-4xl text-slate-300 mb-2"></i>
+                          <span class="text-[10px] text-slate-400">No Image</span>
+                      </div>
+                      
+                      <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-mono font-bold shadow-sm text-slate-700">
+                          {{ item.kode }}
+                      </div>
+                  </div>
+
+                  <div class="p-4">
+                      <h3 class="font-bold text-slate-700 mb-1 truncate" :title="item.nama">{{ item.nama }}</h3>
+                      
+                      <div class="flex justify-between items-end border-t border-slate-50 pt-3 mt-2">
+                          <div>
+                              <div class="text-xs text-slate-500 mb-1 flex items-center gap-1">
+                                  <i class="fa-solid fa-location-dot text-red-400"></i> {{ item.lokasi }}
+                              </div>
+                              <span :class="item.status==='AKTIF'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'" 
+                                    class="text-[10px] px-2 py-0.5 rounded font-bold tracking-wide">
+                                  {{ item.status }}
+                              </span>
+                          </div>
+                          <div class="text-right">
+                              <div class="text-2xl font-bold text-blue-600 leading-none">{{ item.stok }}</div>
+                              <div class="text-[10px] text-slate-400 font-medium mt-1">{{ item.satuan }}</div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div v-if="searchResults.length === 0" class="flex flex-col items-center justify-center py-16 text-slate-400">
+              <div class="bg-slate-50 p-6 rounded-full mb-4">
+                  <i class="fa-solid fa-box-open text-4xl opacity-50"></i>
+              </div>
+              <p class="font-medium">Barang tidak ditemukan.</p>
+              <p class="text-sm">Coba kata kunci lain atau pilih kategori berbeda.</p>
+          </div>
+
+        </div>
+
+        <div v-if="previewImg" @click="previewImg = null" class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out">
+          <img :src="previewImg" class="max-w-full max-h-full rounded-lg shadow-2xl animate-zoom-in" referrerpolicy="no-referrer">
+          <button class="absolute top-5 right-5 text-white text-3xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div v-if="showProfileModal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div class="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b pb-3">
+              <h3 class="font-bold text-lg">Edit Profil</h3>
+              <button @click="showProfileModal = false" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Nama Lengkap</label>
+                <input v-model="profileForm.nama" type="text" class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Password Baru (Kosongkan jika tetap)</label>
+                <input v-model="profileForm.password" type="password" class="w-full border p-2 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button @click="handleUpdateProfile" class="w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 font-bold shadow-soft hover:opacity-95 transition">SIMPAN PERUBAHAN</button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="page === 'master'" class="max-w-7xl mx-auto">
+           <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+             <h2 class="text-2xl font-bold text-slate-800">Master Data</h2>
+             <div class="flex gap-2 w-full md:w-auto">
+                <input v-model="masterSearch" type="text" placeholder="Cari di Master Data..." class="border px-4 py-2 rounded-lg text-sm outline-none focus:border-blue-500 w-full md:w-64">
+                <button v-if="user.role.toUpperCase() === 'ADMIN'" @click="openModalItem(null)" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+                <div v-else class="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-lg text-xs flex items-center gap-2">
+                  <i class="fa-solid fa-circle-info"></i>
+                  Admin Only Create Master Code.
+                </div>
+             </div>
+           </div>
+           <div v-if="showFilterDropdown === 'lokasi'" class="absolute top-full left-0 mt-1 w-56 bg-white shadow-2xl border rounded-xl z-50 p-3 normal-case font-normal text-slate-700">
+              <div class="flex items-center justify-between mb-2 border-b pb-2">
+                <span class="text-[10px] font-bold text-slate-400">Filter Lokasi</span>
+                <button @click="toggleSelectAll('lokasi')" class="text-[10px] text-blue-600 font-bold hover:underline">
+                  {{ activeFilters.lokasi.length === filterOptions.lokasi.length ? 'UNSELECT ALL' : 'SELECT ALL' }}
+                </button>
+              </div>
+
+              <div class="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                <label v-for="opt in filterOptions.lokasi" :key="opt" class="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-md cursor-pointer transition">
+                  <input type="checkbox" :value="opt" v-model="activeFilters.lokasi" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                  <span class="text-sm text-slate-600">{{ opt || 'Tanpa Lokasi' }}</span>
+                </label>
+              </div>
+
+              <div class="border-t mt-3 pt-2 flex justify-end">
+                <button @click="showFilterDropdown = null" class="bg-slate-800 text-white text-[10px] px-3 py-1.5 rounded-md font-bold hover:bg-slate-700">
+                  APPLY
+                </button>
+              </div>
+            </div> 
+           <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+             <div class="max-h-[70vh] overflow-y-auto relative">
+               <table class="w-full border-collapse">
+                  <thead class="sticky top-0 z-10 bg-slate-50 text-[10px] uppercase font-bold text-slate-500 shadow-sm">
+                    <tr>
+                      <th class="p-4 text-left">Foto</th>
+                      <th @click="sortBy('kode')" class="p-4 text-left cursor-pointer hover:bg-slate-100 transition">
+                        Kode <span v-html="getSortIcon('kode')"></span>
+                      </th>
+                      <th @click="sortBy('nama')" class="p-4 text-left cursor-pointer hover:bg-slate-100 transition">
+                        Nama <span v-html="getSortIcon('nama')"></span>
+                      </th>
+                      <th @click="sortBy('lokasi')" class="p-4 text-left cursor-pointer hover:bg-slate-100 transition">
+                        Lokasi <span v-html="getSortIcon('lokasi')"></span>
+                      </th>
+                      <th @click="sortBy('stok')" class="p-4 text-left cursor-pointer hover:bg-slate-100 transition">
+                        Stok <span v-html="getSortIcon('stok')"></span>
+                      </th>
+                      <th @click="sortBy('stokMin')" class="p-4 text-left cursor-pointer hover:bg-slate-100 transition text-red-500">
+                        Min <span v-html="getSortIcon('stokMin')"></span>
+                      </th>
+                      <th class="p-4 text-left">Status</th>
+                      <th class="p-4 text-left">Aksi</th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody class="divide-y divide-slate-100">
+                    <tr v-for="item in sortedFilteredItems" :key="item.kode" class="hover:bg-slate-50 transition">
+                      <td class="p-4">
+                        <div class="w-10 h-10 rounded bg-slate-100 border overflow-hidden flex items-center justify-center">
+                          <img v-if="item.foto && !item.imgFailed" :src="item.foto" @error="imgError(item)" class="w-full h-full object-cover">
+                          <i v-else class="fa-solid fa-image text-slate-300"></i>
+                        </div>
+                      </td>
+                      <td class="p-4 font-mono font-bold text-blue-600">{{ item.kode }}</td>
+                      <td class="p-4">{{ item.nama }}</td>
+                      <td class="p-4">{{ item.lokasi }}</td>
+                      <td class="p-4 font-bold">{{ item.stok }}</td>
+                      <td class="p-4 font-bold text-slate-400">{{ item.stokMin || 0 }}</td>
+                      <td class="p-4">
+                        <span :class="item.status==='AKTIF'?'bg-green-100 text-green-700':'bg-red-100 text-red-700'" class="px-2 py-1 rounded text-[10px] font-bold">
+                          {{ item.status }}
+                        </span>
+                      </td>
+                      <td class="p-4">
+                        <div class="flex gap-1">
+                          <button v-if="user.role === 'ADMIN'" @click="openModalItem(item)" class="text-blue-600 hover:bg-blue-100 p-2 rounded transition" title="Edit Full">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button v-if="user.role === 'STAFF'" @click="openModalLokasi(item)" class="text-emerald-600 hover:bg-emerald-100 p-2 rounded transition flex items-center gap-1" title="Update Lokasi">
+                            <i class="fa-solid fa-location-arrow"></i>
+                            <span class="text-[10px] font-bold uppercase">Lokasi</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+               <div v-if="filteredMasterItems.length === 0" class="p-8 text-center text-slate-400">Data tidak ditemukan.</div>
+             </div>
+           </div>
+        </div>
+
+        <div v-if="page === 'users'" class="max-w-6xl mx-auto p-4 sm:p-6 fade-in relative">
+  
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div>
+              <h2 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                  <i class="fa-solid fa-users-gear text-lg"></i>
+                </span>
+                Manajemen User
+              </h2>
+              <p class="text-slate-500 text-sm mt-1 sm:ml-14">Kelola akses role dan perizinan menu aplikasi.</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3">
+              <button 
+                @click="showRoleModal = true"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white text-sm font-bold rounded-xl shadow-md hover:bg-slate-900 transition-all active:scale-95"
+              >
+                <i class="fa-solid fa-shield-halved"></i> Hak Akses Role
+              </button>
+
+              <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+                <div class="flex -space-x-2">
+                  <div class="w-6 h-6 rounded-full bg-slate-200 border-2 border-white"></div>
+                  <div class="w-6 h-6 rounded-full bg-slate-300 border-2 border-white"></div>
+                  <div class="w-6 h-6 rounded-full bg-indigo-100 border-2 border-white"></div>
+                </div>
+                <span class="text-xs font-bold text-slate-600 pl-2">Total: {{ usersList.length }} Akun</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
+            <div 
+              v-for="u in usersList" 
+              :key="u.username" 
+              class="group relative bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+            >
+              <div 
+                class="absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-colors duration-300"
+                :class="{
+                  'bg-emerald-500': u.status === 'AKTIF',
+                  'bg-amber-400': u.status === 'PENDING',
+                  'bg-rose-500': u.status === 'NONAKTIF'
+                }"
+              ></div>
+
+              <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pl-3">
+                
+                <div class="flex items-center gap-5 w-full lg:w-auto">
+                  <div class="relative flex-shrink-0">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center border border-slate-200 group-hover:border-indigo-100 transition-colors">
+                      <i class="fa-solid fa-user text-2xl text-slate-300 group-hover:text-indigo-400 transition-colors"></i>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 p-1 bg-white rounded-full">
+                      <div 
+                        class="w-3.5 h-3.5 rounded-full shadow-sm border border-white"
+                        :class="{
+                          'bg-emerald-500 animate-pulse': u.status === 'AKTIF',
+                          'bg-amber-400': u.status === 'PENDING',
+                          'bg-rose-500': u.status === 'NONAKTIF'
+                        }"
+                      ></div>
+                    </div>
+                  </div>
+
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                      <h3 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                        {{ u.nama }}
+                      </h3>
+                      
+                      <span v-if="u.status === 'PENDING' && u.role" class="px-2.5 py-0.5 rounded-md text-[10px] font-black tracking-wide uppercase border bg-slate-100 text-slate-500 border-slate-200">
+                        {{ u.role || 'GUEST' }}
+                      </span>
+                    </div>
+
+                    <div class="flex items-center gap-3 text-xs text-slate-500 font-medium mt-1.5">
+                      <span class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md text-slate-600 border border-slate-100">
+                        <i class="fa-solid fa-at text-slate-400 text-[10px]"></i> {{ u.username }}
+                      </span>
+                      
+                      <span v-if="u.status === 'PENDING'" class="text-amber-500 flex items-center gap-1 font-bold animate-pulse">
+                        <i class="fa-solid fa-clock"></i> Menunggu
+                      </span>
+                      <span v-if="u.status === 'NONAKTIF'" class="text-rose-500 flex items-center gap-1 font-bold">
+                        <i class="fa-solid fa-ban"></i> Suspended
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="w-full lg:w-auto flex flex-wrap lg:justify-end gap-2">
+                  
+                  <div v-if="u.status === 'PENDING'" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100 w-full sm:w-auto">
+                    <button 
+                      @click="manageUser(u.username, 'APPROVE', 'MANAGER')" 
+                      class="flex-1 sm:flex-none px-4 py-2 bg-white text-purple-600 text-xs font-bold rounded-lg shadow-sm border border-purple-100 hover:bg-purple-500 hover:text-white hover:border-purple-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <i class="fa-solid fa-user-gear"></i> Manager
+                    </button>
+                    <button 
+                      @click="manageUser(u.username, 'APPROVE', 'STAFF')" 
+                      class="flex-1 sm:flex-none px-4 py-2 bg-white text-emerald-600 text-xs font-bold rounded-lg shadow-sm border border-emerald-100 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <i class="fa-solid fa-user-check"></i> Staff
+                    </button>
+                    <button 
+                      @click="manageUser(u.username, 'APPROVE', 'VIEWER')" 
+                      class="flex-1 sm:flex-none px-4 py-2 bg-white text-blue-600 text-xs font-bold rounded-lg shadow-sm border border-blue-100 hover:bg-blue-500 hover:text-white hover:border-blue-500 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    >
+                      <i class="fa-solid fa-eye"></i> Viewer
+                    </button>
+                    <div class="w-px h-6 bg-slate-200 mx-1 hidden sm:block"></div>
+                    <button 
+                      @click="manageUser(u.username, 'REJECT', null)" 
+                      class="w-10 h-10 flex items-center justify-center bg-white text-rose-500 rounded-lg shadow-sm border border-rose-100 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-95"
+                      title="Tolak & Hapus"
+                    >
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+
+                  <div v-else class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative">
+                      <select 
+                        v-model="u.role" 
+                        @change="updateUserRole(u.username, u.role)" 
+                        class="appearance-none bg-slate-50 border border-slate-200 text-slate-700 text-xs font-black tracking-wide uppercase py-2.5 pl-4 pr-8 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all shadow-sm"
+                        :class="{
+                          'text-purple-600 bg-purple-50 border-purple-100': u.role === 'MANAGER',
+                          'text-blue-600 bg-blue-50 border-blue-100': u.role === 'ADMIN'
+                        }"
+                      >
+                        <option value="VIEWER">VIEWER</option>
+                        <option value="STAFF">STAFF</option>
+                        <option value="MANAGER">MANAGER</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                      </div>
+                    </div>
+
+                    <button 
+                      @click="toggleUserStatus(u.username)"
+                      class="group/btn relative overflow-hidden px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 shadow-sm active:scale-95 border flex items-center justify-center gap-2 flex-1 sm:flex-none"
+                      :class="u.status === 'AKTIF' 
+                        ? 'bg-white text-amber-500 border-amber-100 hover:bg-amber-50 hover:border-amber-200' 
+                        : 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600 hover:shadow-emerald-200'"
+                      :title="u.status === 'AKTIF' ? 'Nonaktifkan Akun' : 'Aktifkan Akun'"
+                    >
+                      <i :class="u.status === 'AKTIF' ? 'fa-solid fa-power-off' : 'fa-solid fa-unlock'"></i>
+                      <span class="hidden sm:inline">{{ u.status === 'AKTIF' ? 'Suspend' : 'Aktifkan' }}</span>
+                    </button>                  
+                    <button 
+                      @click="deleteUser(u.username)"
+                      class="w-10 h-10 flex items-center justify-center bg-white text-rose-500 rounded-xl shadow-sm border border-rose-100 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-95 flex-shrink-0"
+                      title="Hapus Permanen"
+                    >
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div v-if="usersList.length === 0" class="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-300">
+              <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-users-slash text-slate-300 text-2xl"></i>
+              </div>
+              <p class="text-slate-500 font-medium">Belum ada data user.</p>
+            </div>
+          </div>
+
+          <div v-if="showRoleModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+            <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              
+              <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h3 class="font-black text-slate-800 flex items-center gap-2 text-lg">
+                  <i class="fa-solid fa-shield-halved text-indigo-500"></i> Hak Akses & Perizinan Menu
+                </h3>
+                <button @click="showRoleModal = false" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-rose-100 hover:text-rose-500 text-slate-500 flex items-center justify-center transition-colors">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <p class="text-sm text-slate-500 mb-6">Atur menu aplikasi dan tindakan spesifik apa saja yang dapat diakses oleh masing-masing Role.</p>
+                
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                  <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th class="px-4 py-3">Menu & Aksi Aplikasi</th>
+                        <th class="px-4 py-3 text-center border-l border-slate-200">ADMIN</th>
+                        <th class="px-4 py-3 text-center border-l border-slate-200">MANAGER</th>
+                        <th class="px-4 py-3 text-center border-l border-slate-200">STAFF</th>
+                        <th class="px-4 py-3 text-center border-l border-slate-200">VIEWER</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                      
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2"><i class="fa-solid fa-chart-pie w-4 text-slate-400"></i> Dashboard</td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.dashboard" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.dashboard" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.dashboard" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.dashboard" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                      </tr>
+
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2"><i class="fa-solid fa-barcode w-4 text-slate-400"></i> Transaksi Scan</td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.transaksi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.transaksi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.transaksi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.transaksi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                      </tr>
+
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2"><i class="fa-solid fa-ban w-4 text-slate-400"></i> Pembatalan Transaksi</td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.pembatalan" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.pembatalan" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.pembatalan" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.pembatalan" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                      </tr>
+
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2 font-bold"><i class="fa-solid fa-boxes-stacked w-4 text-indigo-500"></i> Stock Holding </td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.barang" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.barang" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.barang" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.barang" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                      </tr>
+
+                      <tr class="bg-indigo-50/30 hover:bg-indigo-50/70 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2 pl-8 text-xs text-indigo-700 border-l-2 border-indigo-400">
+                          <i class="fa-solid fa-map-location-dot w-4"></i> Aksi: Update Lokasi Barang
+                        </td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.update_lokasi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.update_lokasi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.update_lokasi" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.update_lokasi" class="w-4 h-4 text-slate-400 rounded border-slate-300 cursor-not-allowed" disabled title="Viewer tidak bisa update"></td>
+                      </tr>
+
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 flex items-center gap-2"><i class="fa-solid fa-users-gear w-4 text-slate-400"></i> Kelola User</td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.admin.users" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.manager.users" class="w-4 h-4 text-slate-300 rounded border-slate-200 cursor-not-allowed" disabled title="Hanya Admin"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.staff.users" class="w-4 h-4 text-slate-300 rounded border-slate-200 cursor-not-allowed" disabled title="Hanya Admin"></td>
+                        <td class="px-4 py-3 text-center border-l border-slate-100"><input type="checkbox" v-model="permissions.viewer.users" class="w-4 h-4 text-slate-300 rounded border-slate-200 cursor-not-allowed" disabled title="Hanya Admin"></td>
+                      </tr>
+                      
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 z-10">
+                <button @click="showRoleModal = false" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition-colors text-sm shadow-sm">
+                  Batal
+                </button>
+                <button @click="savePermissions" class="px-5 py-2.5 rounded-xl font-bold text-white bg-indigo-600 shadow-md shadow-indigo-200 hover:bg-indigo-700 transition-colors text-sm flex items-center gap-2 active:scale-95">
+                  <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <div v-if="page === 'pembatalan' && permissions[user.role?.toLowerCase()]?.pembatalan" class="animate-fade-in max-w-6xl mx-auto">
+          <div class="mb-8">
+            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Pembatalan Transaksi</h2>
+            <p class="text-slate-500 font-medium mt-1">Batalkan transaksi yang salah input dan kembalikan stok secara otomatis.</p>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden flex flex-col" style="max-height: 75vh;">
+            
+            <div class="flex-none p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 z-10">
+              <h3 class="font-bold text-slate-700 whitespace-nowrap">
+                <i class="fa-solid fa-clock-rotate-left mr-2 text-indigo-500"></i> Riwayat Transaksi
+              </h3>
+              
+              <div class="flex-1 w-full sm:max-w-md relative">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" 
+                      v-model="searchCancelTx" 
+                      placeholder="Cari kode atau nama barang..." 
+                      class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white placeholder-slate-400">
+              </div>
+
+              <button @click="fetchRecentTx" 
+                      class="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all whitespace-nowrap">
+                <i class="fa-solid fa-rotate-right mr-1"></i> Refresh
+              </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              
+              <div v-if="isLoadingTx" class="flex flex-col items-center justify-center py-20 text-slate-400">
+                <div class="spinner-border text-indigo-500 mb-4" role="status"></div>
+                <p class="font-bold animate-pulse">Menghubungkan ke database...</p>
+              </div>
+
+              <div v-else-if="filteredCancelTx.length === 0" class="text-center py-20">
+                <i class="fa-solid fa-folder-open text-5xl text-slate-200 mb-4"></i>
+                <p class="text-slate-400 font-bold mb-1">Data tidak ditemukan.</p>
+                <p class="text-slate-400 text-sm" v-if="searchCancelTx">Tidak ada transaksi yang cocok dengan pencarian "{{ searchCancelTx }}".</p>
+              </div>
+
+              <div v-else class="space-y-3">
+                <div v-for="tx in filteredCancelTx" :key="tx.rowId" 
+                    class="p-4 border rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-all"
+                    :class="isVoid(tx) ? 'bg-rose-50/40 border-rose-100 grayscale-[0.3]' : 'bg-white border-slate-100 hover:border-indigo-200 shadow-sm'">
+
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="px-2 py-0.5 rounded-md text-[10px] font-black"
+                            :class="tx.jenis === 'MASUK' ? 'bg-emerald-100 text-emerald-700' : (tx.jenis === 'KELUAR' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')">
+                        {{ tx.jenis }}
+                      </span>
+                      <span class="text-xs text-slate-400 font-bold">
+                        <i class="fa-regular fa-calendar mr-1"></i> {{ tx.tgl }} </span>
+                      <span class="text-xs text-slate-400 font-bold ml-2">
+                        <i class="fa-regular fa-user mr-1"></i> {{ tx.user }}
+                      </span>
+                    </div>
+                    <h4 class="font-bold text-sm" :class="isVoid(tx) ? 'text-slate-400 line-through' : 'text-slate-800'">
+                      {{ tx.nama }} <span class="text-xs font-mono ml-1" :class="isVoid(tx) ? 'text-slate-400' : 'text-indigo-500'">({{ tx.kode }})</span>
+                    </h4>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-1">Ket: {{ tx.ket || '-' }} | Dept: {{ tx.dept || '-' }}</p>
+                  </div>
+
+                  <div class="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+                    <div class="text-right">
+                      <p class="text-xl font-black" :class="isVoid(tx) ? 'text-slate-400 line-through' : 'text-slate-700'">{{ tx.qty }}</p>
+                      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ tx?.satuan || 'unit' }}</p>
+                    </div>
+
+                    <button v-if="!isVoid(tx) && tx.jenis !== 'OPNAME'" 
+                            @click="doCancelTx(tx)" 
+                            class="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl font-bold text-xs hover:bg-rose-600 hover:text-white transition-all shadow-sm active:scale-95 border border-rose-100">
+                      Batalkan
+                    </button>
+
+                    <span v-else-if="isVoid(tx)" 
+                          class="text-[10px] font-black text-rose-500 bg-white px-3 py-1.5 rounded-lg border-2 border-rose-200 flex items-center gap-1">
+                      <i class="fa-solid fa-ban"></i> VOID
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="showChat" class="fixed bottom-6 right-6 w-80 md:w-96 h-[500px] bg-white shadow-2xl rounded-3xl border border-slate-100 flex flex-col z-[200] overflow-hidden animate__animated animate__fadeInUp animate__faster">
+
+          <!-- Header -->
+          <div class="p-4 bg-indigo-600 text-white flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center border border-indigo-400">
+                <i class="fa-solid fa-users text-xs"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-black uppercase tracking-widest">Global Chat</h3>
+                <p class="text-[10px] text-indigo-200 uppercase font-bold">Online Team</p>
+              </div>
+            </div>
+            <button @click="closeChat" class="hover:bg-indigo-500 w-8 h-8 rounded-full transition-colors flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Chat Messages -->
+          <div id="chat-box" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 custom-scrollbar">
+            <div v-for="(msg, idx) in chatMessages" :key="idx" 
+                :class="msg.sender === user.nama ? 'justify-end' : 'justify-start'" 
+                class="flex flex-col">
+              
+              <!-- Sender -->
+              <span class="text-[9px] font-black text-slate-400 uppercase mb-1 px-1">{{ msg.sender }}</span>
+
+              <!-- Message -->
+              <div :class="msg.sender === user.nama 
+                            ? 'bg-indigo-600 text-white rounded-l-2xl rounded-tr-2xl' 
+                            : 'bg-white text-slate-700 rounded-r-2xl rounded-tl-2xl border shadow-sm'" 
+                  class="px-4 py-2.5 text-sm font-medium max-w-[80%]">
+                {{ msg.text }}
+              </div>
+
+              <!-- Timestamp -->
+              <span class="text-[8px] text-slate-400 mt-1 px-1">{{ msg.time }}</span>
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="p-4 bg-white border-t">
+            <div class="flex gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 items-center">
+              <!-- Text Input -->
+              <input v-model="newMessage" @keyup.enter="sendMessage" 
+                    type="text" placeholder="Tulis pesan..." 
+                    ref="messageInput"
+                    class="flex-1 bg-transparent px-3 py-2 text-sm outline-none font-medium">
+
+              <!-- Send Button -->
+              <button @click="sendMessage" :disabled="!newMessage.trim()"
+                      class="bg-indigo-600 text-white w-10 h-10 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center">
+                <i class="fa-solid fa-paper-plane text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <div v-if="showScanner" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4" role="dialog" aria-modal="true">
+      <div class="w-full max-w-sm bg-white rounded-2xl overflow-hidden relative shadow-2xl">
+        
+        <div class="absolute top-0 left-0 w-full p-3 bg-black/60 backdrop-blur-sm text-white text-sm font-semibold z-50 flex justify-between items-center">
+          <span class="flex items-center gap-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+            Scanning...
+          </span>
+          <span class="bg-indigo-500 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm">
+            {{ scannedItems.length }} Item
+          </span>
+        </div>
+        
+        <div class="relative bg-black">
+          <div id="reader" class="h-72 w-full object-cover"></div>
+          
+          <transition name="fade">
+            <div v-if="scanSuccessFlash" class="absolute inset-0 bg-emerald-500/30 flex items-center justify-center z-60">
+              <div class="bg-emerald-500 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl animate-bounce">
+                <i class="fa-solid fa-check text-3xl"></i>
+              </div>
+            </div>
+          </transition>
+        </div>
+
+        <button @click="closeScanner" class="relative z-70 w-full py-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-base flex items-center justify-center gap-2 transition-colors active:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+          <i class="fa-solid fa-stop"></i> Selesai & Tutup
+        </button>
+      </div>
+    </div>
+
+    <div v-if="showModalItem" class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-slate-900/80 backdrop-blur-md transition-opacity duration-300">
+  
+      <div class="bg-white w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden transform transition-all duration-300 scale-100">
+        
+        <div 
+          class="px-6 py-5 flex justify-between items-center relative overflow-hidden"
+          :class="itemForm.isEdit ? 'bg-amber-50' : 'bg-indigo-50'"
+        >
+          <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full opacity-50 blur-2xl"
+              :class="itemForm.isEdit ? 'bg-amber-300' : 'bg-indigo-300'"></div>
+
+          <div class="relative z-10">
+            <h3 class="font-black text-xl tracking-tight flex items-center gap-3"
+                :class="itemForm.isEdit ? 'text-amber-700' : 'text-indigo-700'">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm text-white"
+                  :class="itemForm.isEdit ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-br from-indigo-400 to-blue-600'">
+                <i :class="itemForm.isEdit ? 'fa-solid fa-pen-nib' : 'fa-solid fa-box-open'"></i>
+              </div>
+              {{ itemForm.isEdit ? 'Edit Barang' : 'Barang Baru' }}
+            </h3>
+            <p class="text-xs font-medium ml-[3.25rem] opacity-70" :class="itemForm.isEdit ? 'text-amber-800' : 'text-indigo-800'">
+              {{ itemForm.isEdit ? 'Perbarui data inventaris' : 'Tambahkan stok ke sistem' }}
+            </p>
+          </div>
+
+          <button @click="closeModalItem" class="relative z-10 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar bg-white">
+          
+          <div class="space-y-4">
+            <div class="relative group">
+              <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Kode Barang</label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fa-solid fa-barcode text-slate-400"></i>
+                </div>
+                
+                <div v-if="itemForm.isEdit" class="w-full bg-slate-100/80 border border-slate-200 pl-10 pr-3 py-3 rounded-xl font-mono font-bold text-slate-500 flex justify-between items-center cursor-not-allowed">
+                    {{ itemForm.kode }}
+                    <i class="fa-solid fa-lock text-slate-300 text-xs"></i>
+                </div>
+
+                <input v-else v-model="itemForm.kode" type="text" placeholder="CTH: BRG-001" 
+                        class="w-full bg-slate-50 border-0 pl-10 pr-4 py-3 rounded-xl font-bold font-mono text-slate-700 placeholder:font-sans placeholder:font-normal focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all uppercase">
+              </div>
+            </div>
+
+            <div class="relative">
+              <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Nama Barang <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fa-solid fa-tag text-slate-400"></i>
+                </div>
+                <input v-model="itemForm.nama" type="text" placeholder="Masukkan nama lengkap barang..." 
+                      class="w-full bg-slate-50 border-0 pl-10 pr-4 py-3 rounded-xl font-semibold text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                      :class="!itemForm.nama ? 'ring-1 ring-rose-200 bg-rose-50' : ''">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            
+            <div>
+              <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Satuan</label>
+              <div class="relative">
+                <input v-model="itemForm.satuan" type="text" placeholder="Pcs" 
+                      class="w-full bg-slate-50 border-0 px-3 py-2.5 rounded-xl font-bold text-center text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Rak</label>
+              <input v-model="itemForm.lokasi" type="text" placeholder="A-01" 
+                      class="w-full bg-slate-50 border-0 px-3 py-2.5 rounded-xl font-bold text-center text-slate-700 uppercase focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+            </div>
+
+            <div class="col-span-2 sm:col-span-1">
+              <label class="text-[10px] font-extrabold text-rose-400 uppercase tracking-widest ml-1 mb-1 block flex items-center gap-1">
+                <i class="fa-solid fa-bell"></i> Min. Alert
+              </label>
+              <div class="relative">
+                  <input v-model.number="itemForm.stokMin" type="number" placeholder="0" 
+                        class="w-full bg-rose-50 border-0 px-3 py-2.5 rounded-xl font-bold text-center text-rose-600 focus:ring-2 focus:ring-rose-500 focus:bg-white transition-all">
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
+            
+            <div class="flex items-start gap-4">
+              <div class="w-20 h-20 flex-shrink-0 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex items-center justify-center relative group">
+                  <img v-if="itemForm.foto" :src="itemForm.foto" class="w-full h-full object-cover">
+                  <i v-else class="fa-solid fa-image text-slate-300 text-2xl"></i>
+                  
+                  <div v-if="itemForm.foto" class="absolute bottom-0 inset-x-0 bg-emerald-500 h-1"></div>
+              </div>
+
+              <div class="flex-1 space-y-1">
+                  <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Link Foto / URL</label>
+                  <input v-model="itemForm.foto" type="text" placeholder="https://..." 
+                        class="w-full bg-white border border-slate-200 text-xs px-3 py-2 rounded-lg text-blue-600 font-mono focus:border-blue-500 outline-none">
+                  <p class="text-[10px] text-slate-400 italic ml-1">Paste link gambar langsung dari Google/Drive.</p>
+              </div>
+            </div>
+
+            <div v-if="itemForm.isEdit" class="pt-2 border-t border-slate-200">
+              <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Status Barang</label>
+              <div class="grid grid-cols-2 gap-3">
+                  <button @click="itemForm.status = 'AKTIF'" 
+                          class="px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-2"
+                          :class="itemForm.status === 'AKTIF' ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-200' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'">
+                      <i class="fa-solid fa-check-circle"></i> Stok Aktif
+                  </button>
+                  <button @click="itemForm.status = 'NONAKTIF'" 
+                          class="px-3 py-2 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-2"
+                          :class="itemForm.status === 'NONAKTIF' ? 'bg-slate-700 text-white border-slate-700 shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'">
+                      <i class="fa-solid fa-ban"></i> Non-Aktif
+                  </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="p-5 border-t border-slate-100 bg-white flex flex-col sm:flex-row gap-3">
+          <button @click="closeModalItem" 
+                  class="order-2 sm:order-1 flex-1 py-3.5 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-100 transition-colors">
+            BATAL
+          </button>
+          <button @click="saveItem" 
+                  class="order-1 sm:order-2 flex-[2] py-3.5 rounded-xl font-bold text-sm text-white shadow-lg transform active:scale-95 transition-all flex items-center justify-center gap-2"
+                  :class="itemForm.isEdit ? 'bg-gradient-to-r from-amber-500 to-orange-600 shadow-orange-200' : 'bg-gradient-to-r from-indigo-500 to-blue-600 shadow-indigo-200'">
+            <i class="fa-solid fa-floppy-disk"></i>
+            {{ itemForm.isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN BARANG' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div v-if="showModalLokasi" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-lg text-slate-700">
+            <i class="fa-solid fa-map-location-dot mr-2 text-blue-600"></i>Update Lokasi
+          </h3>
+          <button @click="showModalLokasi = false" class="text-slate-400 hover:text-red-500 transition">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        
+        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+          <p class="text-[10px] font-bold text-blue-400 uppercase">Barang</p>
+          <p class="text-sm font-bold text-slate-700">{{ lokasiForm.nama }}</p>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Lokasi Baru</label>
+          <input v-model="lokasiForm.lokasiBaru" 
+                type="text" 
+                class="w-full border-2 p-3 rounded-xl outline-none focus:border-blue-500 font-bold transition-all"
+                placeholder="Masukkan lokasi...">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button @click="saveLokasi" 
+                  class="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
+            SIMPAN PERUBAHAN
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const { createApp } = Vue;
+  createApp({
+    data() {
+      return {
+        // --- State Utama ---
+        user: null,
+        token: null,
+        loading: false,
+        page: 'dashboard',
+        isSidebarOpen: false,        
+        role: '',
+        pageHistory: [],
+        isLoggedIn: false,
+
+        // --- Auth ---
+        authMode: 'login',
+        loginForm: { username: '', password: '' },
+        regForm: { username: '', password: '', nama: '' },
+        showProfileModal: false,
+        profileForm: { nama: '', password: '' },
+
+        // --- Dashboard & Filter ---
+        dashData: {
+          totalItem: 0,
+          totalStok: 0,
+          selisihOpname: 0,
+          totalLowStock: 0,
+          recentTx: []
+        },
+        dashFilter: { type: 'ALL', dept: '', start: '', end: '' },
+        lowStockItems: [],
+        isExportingPR: false,
+        isLoadingLowStock: false,
+        showLowStock: false,
+        isLoadingTx: false,
+        searchCancelTx: '',
+
+        // --- Master Data & Pencarian ---
+        masterItems: [],
+        masterSearch: '',
+        searchQuery: '',
+        searchTimeout: null,
+        searchResults: [],
+        previewImg: null,
+        sortConfig: { key: 'nama', direction: 'asc' },
+        filterCategory: 'ALL',
+        isExporting: false,
+        allCategories: [],
+        filterOptions: {},
+        activeFilters: {},
+        showFilterDropdown: null,
+
+        // --- Transaksi & Keranjang ---
+        showCart: false,
+        cart: [],
+        txType: 'KELUAR',
+        txDept: '',
+        deptSearch: '',
+        txNote: '',
+        departments: [],
+        showDeptList: false,
+        showDeptResultsReport: false,
+        scanQty: 1,
+        lastScanTime: 0,
+        isScanLocked: false,
+        scanSuccessFlash: false,
+        scannedItems: [],
+
+        // --- Modals ---
+        showModalItem: false,
+        itemForm: { kode: '', nama: '', satuan: '', lokasi: '', stokMin: 0, status: 'AKTIF', foto: '', isEdit: false },
+        showModalLokasi: false,
+        lokasiForm: { nama: '', kode: '', lokasiBaru: '' },
+        showRoleModal: false,
+
+        permissions: {
+          admin:   { dashboard: true, transaksi: true, pembatalan: true, barang: true, update_lokasi: true, users: true },
+          manager: { dashboard: true, transaksi: false, pembatalan: true, barang: true, update_lokasi: false, users: false },
+          staff:   { dashboard: true, transaksi: true, pembatalan: false, barang: true, update_lokasi: true, users: false }, // Staff bisa update lokasi
+          viewer:  { dashboard: false, transaksi: false, pembatalan: false, barang: true, update_lokasi: false, users: false },
+        },
+
+        // --- System ---
+        usersList: [],
+        showScanner: false,
+        html5QrcodeScanner: null,
+
+        // --- Chat System ---
+        showChat: false,
+        chatMessages: [],
+        newMessage: '',
+        chatInterval: null,
+        lastChatCount: 0,
+      };
+    },
+
+    watch: {
+      dashFilter: {
+        handler() {
+          clearTimeout(this._dashTimeout);
+          this._dashTimeout = setTimeout(() => {
+            this.fetchDashboard();
+          }, 500);
+        },
+        deep: true
+      }
+    },
+
+    computed: {
+      // 🔹 Filter master items by search query
+      filteredMasterItems() {
+        if (!this.masterItems || !Array.isArray(this.masterItems)) return [];
+        if (!this.masterSearch) return this.masterItems;
+
+        const q = this.masterSearch.toLowerCase();
+        return this.masterItems.filter(i =>
+          String(i.nama || '').toLowerCase().includes(q) ||
+          String(i.kode || '').toLowerCase().includes(q) ||
+          String(i.lokasi || '').toLowerCase().includes(q)
+        );
+      },
+
+      // 🔹 Sorted filtered master items
+      sortedFilteredItems() {
+        if (!this.filteredMasterItems || !Array.isArray(this.filteredMasterItems)) return [];
+
+        const items = [...this.filteredMasterItems];
+        const key = this.sortConfig?.key || '';
+        const dir = this.sortConfig?.direction === 'asc' ? 1 : -1;
+
+        if (!key) return items;
+
+        return items.sort((a, b) => {
+          const valA = a[key];
+          const valB = b[key];
+
+          if (['stok', 'stokMin'].includes(key)) {
+            return (Number(valA || 0) - Number(valB || 0)) * dir;
+          }
+
+          return String(valA || '').localeCompare(String(valB || '')) * dir;
+        });
+      },
+
+      categoryList() {
+        return Array.isArray(this.allCategories) ? this.allCategories : [];
+      },
+
+      // 🔹 Filter by category & search
+      filteredSearchResults() {
+        // renamed from searchResults
+        return this.masterItems.filter(item => {
+          const matchCategory =
+            this.filterCategory === 'ALL' ||
+            item.kategori === this.filterCategory;
+
+          const matchSearch =
+            item.nama.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+            item.kode.toLowerCase().includes(this.searchQuery.toLowerCase());
+
+          return matchCategory && matchSearch;
+        });
+      },
+
+      // 🔹 Filter recent transactions for dashboard
+      filteredHistory() {
+        if (!this.dashData?.recentTx || !Array.isArray(this.dashData.recentTx)) return [];
+
+        const q = (this.searchQuery || '').toLowerCase();
+        return this.dashData.recentTx.filter(tx => {
+          const user = (tx.user || '').toLowerCase();
+          const kode = (tx.kode || '').toLowerCase();
+          const nama = (tx.nama || '').toLowerCase();
+          const dept = (tx.dept || '').toLowerCase();
+          return user.includes(q) || kode.includes(q) || nama.includes(q) || dept.includes(q);
+        });
+      },
+
+      // 🔹 Filter recent transactions for cancellation page
+      filteredCancelTx() {
+        if (!this.recentTx || !Array.isArray(this.recentTx) || this.recentTx.length === 0) return [];
+
+        const q = (this.searchCancelTx || '').toLowerCase().trim();
+        if (!q) return this.recentTx;
+
+        return this.recentTx.filter(tx => {
+          const kode = (tx.kode || '').toLowerCase();
+          const nama = (tx.nama || '').toLowerCase();
+          return kode.includes(q) || nama.includes(q);
+        });
+      },
+
+      // 🔹 Paginate history (limit 300)
+      paginatedHistory() {
+        return (this.filteredHistory || []).slice(0, 300);
+      },
+
+      // 🔹 Safe clone of recent transactions
+      recentTxSafe() {
+        if (!this.recentTx || !Array.isArray(this.recentTx)) return [];
+        return this.recentTx.map(tx => Object.freeze({ ...tx }));
+      },
+
+      // 🔹 Filter departments by search query
+      filteredDepts() {
+        if (!this.departments || !Array.isArray(this.departments)) return [];
+        const q = (this.deptSearch || '').toLowerCase();
+        return this.departments.filter(d => String(d).toLowerCase().includes(q));
+      },
+
+      // 🔹 Filter departments for reports
+      filteredDeptsReport() {
+        if (!this.departments || !Array.isArray(this.departments)) return [];
+
+        const search = (this.dashFilter?.dept || '').toLowerCase();
+        if (!search) return this.departments.slice(0, 15);
+        return this.departments.filter(d => String(d).toLowerCase().includes(search));
+      },
+    },
+
+    mounted() {
+      this.restoreSession();
+    },
+
+    beforeUnmount() {
+      if (this.sessionInterval) {
+        clearInterval(this.sessionInterval);
+        this.sessionInterval = null;
+      }
+
+      if (this.handleClickOutside) {
+        document.removeEventListener("click", this.handleClickOutside);
+      }
+    },
+    methods: {
+      async restoreSession() {
+        const token = localStorage.getItem("wms_v5_final");
+        const savedUser = localStorage.getItem("wms_v5_user");
+
+        if (!token || !savedUser) {
+          this.forceLogout(false);
+          return;
+        }
+
+        try {
+          const parsedUser = JSON.parse(savedUser);
+
+          // 🔐 VALIDASI TOKEN KE BACKEND
+          const session = await this.runGS("validateSession", token);
+
+          if (!session || !session.valid) {
+            this.forceLogout(false);
+            return;
+          }
+
+          // ✅ Gunakan data dari backend sebagai source of truth
+          this.user = {
+            token: token,
+            nama: session.nama,
+            role: session.role
+          };
+
+          this.isLoggedIn = true;
+
+          this.initAfterLogin();
+          this.loadInitialDataByRole();
+          this.startSessionWatcher();
+          this.setupClickOutside();
+
+          this.$nextTick(() => {
+            this.$refs.myInput?.focus();
+          });
+
+        } catch (err) {
+          console.warn("Restore session gagal:", err);
+          this.forceLogout(false);
+        }
+      },
+
+      startSessionWatcher() {
+        this.sessionInterval = setInterval(async () => {
+          const token = localStorage.getItem("wms_v5_final");
+          if (!token) {
+            this.forceLogout(true);
+            return;
+          }
+
+          const session = await this.runGS("validateSession", token);
+
+          if (!session || !session.valid) {
+            this.forceLogout(true);
+          }
+        }, 300000); // 5 menit
+      },
+
+      loadInitialDataByRole() {
+        if (!this.user?.role) return;
+
+        const role = this.user.role.toUpperCase();
+
+        // ADMIN
+        if (role === "ADMIN") {
+          this.fetchUsers();
+          this.fetchPermissions();
+        }
+
+        // MANAGER
+        if (role === "MANAGER") {
+          this.fetchUsers();
+        }
+
+        // Semua role login
+        this.requestNotificationPermission();
+        this.loadCategories();
+
+        if (this.page === "dashboard" && role !== "VIEWER") {
+          this.fetchLowStockData();
+        }
+
+        if (this.page === "pembatalan") {
+          this.fetchRecentTx();
+        }
+      },
+
+      setupClickOutside() {
+        this.handleClickOutside = (e) => {
+          const el = document.getElementById("dept-autocomplete-container");
+          if (el && !el.contains(e.target)) {
+            this.showDeptResultsReport = false;
+          }
+        };
+
+        document.addEventListener("click", this.handleClickOutside);
+      },
+
+      // 1. Load Daftar Kategori
+      loadCategories() {
+        google.script.run
+          .withSuccessHandler(categories => {
+            this.allCategories = categories || [];
+          })
+          .withFailureHandler(err => {
+            console.error(err);
+            Swal.fire('Error', 'Gagal load kategori', 'error');
+          })
+          .getDataCategories();
+      },
+
+      // 2. Fungsi Export Excel
+      downloadStockExcel() {
+          this.isExporting = true;
+
+          google.script.run
+            .withSuccessHandler(data => {
+              if (!Array.isArray(data) || data.length === 0) {
+                Swal.fire('Info', 'Tidak ada data stok > 0 untuk kategori ini.', 'info');
+                this.isExporting = false;
+                return;
+              }
+
+              const dateStr = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+              const fileName = `Stok_Export_${this.filterCategory}_${dateStr}.xlsx`;
+
+              try {
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Stok Barang");
+                XLSX.writeFile(wb, fileName);
+              } catch (e) {
+                Swal.fire('Error', 'Gagal membuat file Excel: ' + e.message, 'error');
+              } finally {
+                this.isExporting = false;
+              }
+
+            })
+            .withFailureHandler(err => {
+              this.isExporting = false;
+              Swal.fire('Error', 'Gagal export: ' + err.message, 'error');
+            })
+            .getExportStockData(this.filterCategory);
+      },
+
+      downloadPRExcel() {
+
+        if (!this.lowStockItems || this.lowStockItems.length === 0) return;
+
+        this.isExportingPR = true;
+
+        try {
+
+          const excelData = this.lowStockItems.map(item => ({
+            "KODE BARANG": item.kode || '',
+            "NAMA BARANG": item.nama || '',
+            "SATUAN": item.satuan || '',
+            "QTY PERMINTAAN": item.qtyRequest || 0,
+            "STOK AKHIR": item.stok || 0
+          }));
+
+          const ws = XLSX.utils.json_to_sheet(excelData);
+          ws['!cols'] = [
+            { wch: 15 },
+            { wch: 40 },
+            { wch: 10 },
+            { wch: 20 },
+            { wch: 15 }
+          ];
+
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Purchase Requisition");
+
+          const dateStr = new Date().toISOString().slice(0,10);
+          XLSX.writeFile(wb, `PR_Request_${dateStr}.xlsx`);
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Export Berhasil',
+            text: 'File PR telah didownload.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+        } catch (err) {
+          console.error(err);
+          Swal.fire('Error', 'Gagal export excel', 'error');
+        } finally {
+          this.isExportingPR = false;
+        }
+      },
+
+      fetchLowStockData() {
+        if (this.isLoadingLowStock) return;
+
+        this.isLoadingLowStock = true;
+
+        google.script.run
+          .withSuccessHandler((data) => {
+            this.lowStockItems = Array.isArray(data) ? data : [];
+            this.isLoadingLowStock = false;
+          })
+          .withFailureHandler((err) => {
+            console.error('Low Stock Error:', err);
+            this.lowStockItems = [];
+            this.isLoadingLowStock = false;
+          })
+          .getLowStockForPR();
+      },
+
+      imgError(item) { item.imgFailed = true; }, // Fix Image Error
+      runGS(func, ...args) {
+        return new Promise((resolve, reject) => {
+          this.loading = true;
+          google.script.run.withSuccessHandler(res => { this.loading = false; resolve(res); })
+            .withFailureHandler(err => { this.loading = false; Swal.fire('Error', err.message, 'error'); reject(err); })[func](...args);
+        });
+      },
+
+      openProfile() {
+        this.profileForm.nama = this.user.nama;
+        this.profileForm.password = '';
+        this.showProfileModal = true;
+      },
+
+      handleUpdateProfile() {
+        if (!this.profileForm.nama) {
+          return Swal.fire('Error', 'Nama tidak boleh kosong', 'error');
+        }
+
+        this.runGS(
+          'updateProfile',
+          this.user.token,       // 🔐 kirim token
+          this.profileForm.nama,
+          this.profileForm.password
+        ).then(res => {
+          if (res.status === 'success') {
+            Swal.fire('Berhasil', res.message, 'success');
+
+            // Update data lokal
+            this.user.nama = this.profileForm.nama;
+            // simpan kembali user object, tetap token sama
+            localStorage.setItem('wms_v5_user', JSON.stringify(this.user));
+            localStorage.setItem('wms_v5_final', this.user.token);
+            // Jangan simpan token di sini lagi, cukup di localStorage['wms_v5_final']
+
+            this.showProfileModal = false;
+          } else {
+            Swal.fire('Error', res.message, 'error');
+          }
+        });
+      },
+      
+      handleLogin() {
+        if (!this.loginForm.username || !this.loginForm.password) {
+          Swal.fire('Error', 'Username dan password wajib diisi', 'warning');
+          return;
+        }
+
+        this.runGS('loginUser', this.loginForm.username, this.loginForm.password)
+          .then(res => {
+
+            if (!res || res.status !== 'success' || !res.token) {
+              Swal.fire('Gagal', res?.message || 'Login gagal', 'error');
+              return;
+            }
+
+            // Set state user
+            this.user = {
+              token: res.token,
+              nama: res.nama,
+              role: res.role,
+              expiredAt: res.expiredAt
+            };
+
+            // Simpan token terpisah
+            localStorage.setItem('wms_v5_final', res.token);
+
+            // Simpan info user tanpa status
+            localStorage.setItem('wms_v5_user', JSON.stringify({
+              nama: res.nama,
+              role: res.role,
+              expiredAt: res.expiredAt
+            }));
+
+            this.isLoggedIn = true;
+            this.initAfterLogin();
+          })
+          .catch(err => {
+            Swal.fire('Error System', err?.message || err.toString(), 'error');
+          });
+      },
+
+      handleRegister() {
+        this.runGS('registerUser', this.regForm.nama, this.regForm.username, this.regForm.password)
+          .then(res => {
+            res.status === 'success'
+              ? Swal.fire('Berhasil', res.message, 'success')
+              : Swal.fire('Gagal', res.message, 'error');
+          });
+      },
+
+      logout() {
+        Swal.fire({
+          title: 'Logout?',
+          text: 'Kamu akan keluar dari aplikasi',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Logout',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#ef4444',
+          cancelButtonColor: '#64748b'
+        }).then(result => {
+          if (result.isConfirmed) {
+            if (this.sessionInterval) {
+              clearInterval(this.sessionInterval);
+              this.sessionInterval = null;
+            }
+
+            this.stopChatInterval();
+            this.resetAppState();
+            Swal.fire('Logout', 'Berhasil logout', 'success');
+          }
+        });
+      },
+
+      initAfterLogin() {
+        this.page = 'dashboard';
+        this.fetchInitialData();
+        this.fetchDashboard();
+
+        // Auto cek session tiap 30 menit
+        if (this.sessionInterval) clearInterval(this.sessionInterval);
+        this.sessionInterval = setInterval(() => this.validateSession(), 1800000);
+      },
+
+      validateSession() {
+        const token = localStorage.getItem('wms_v5_final');
+        if (!token) {
+          this.forceLogout();
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(res => {
+            if (!res || !res.valid) this.forceLogout();
+          })
+          .withFailureHandler(() => console.warn('Gagal cek session'))
+          .validateSession(token);
+      },
+
+      forceLogout() {
+        if (this.sessionInterval) {
+          clearInterval(this.sessionInterval);
+          this.sessionInterval = null;
+        }
+
+        this.resetAppState();
+
+        Swal.fire({
+          icon: 'warning',
+          title: 'Session Berakhir',
+          text: 'Silakan login kembali.'
+        });
+      },
+
+      resetAppState() {
+        localStorage.removeItem('wms_v5_final');
+        localStorage.removeItem('wms_v5_user');
+
+        this.user = null;
+        this.isLoggedIn = false;
+        this.page = 'login';
+        this.authMode = 'login';
+        this.loginForm = { username: '', password: '' };
+        this.regForm = { username: '', password: '', nama: '' };
+        this.showProfileModal = false;
+        this.showCart = false;
+        this.showScanner = false;
+      },
+
+      // ==============================
+      // PERMISSIONS SYSTEM
+      // ==============================
+
+      fetchPermissions() {
+        if (!this.user || !this.user.token) {
+          console.warn('fetchPermissions dibatalkan: user atau token kosong');
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(res => {
+            if (!res || res.status === 'error') return;
+
+            this.permissions = {
+              admin: res.admin || this.permissions.admin,
+              manager: res.manager || this.permissions.manager,
+              staff: res.staff || this.permissions.staff,
+              viewer: res.viewer || this.permissions.viewer
+            };
+          })
+          .withFailureHandler(err => {
+            console.error(err);
+            Swal.fire('Error', 'Gagal load permissions', 'error');
+          })
+          .adminGetPermissions(this.user.token);
+      },
+
+      savePermissions() {
+        if (!this.user.token) return;
+        
+        // Asumsi runGS adalah fungsi helper Anda
+        this.runGS('adminSavePermissions', this.user.token, this.permissions)
+          .then(res => {
+            if (res.status === 'success') {
+              Swal.fire('Berhasil', 'Hak akses disimpan', 'success');
+              this.showRoleModal = false;
+              // Refresh permissions user saat ini
+              this.fetchPermissions(); 
+            } else {
+              Swal.fire('Gagal', res.message, 'error');
+            }
+          });
+      },
+            
+      fetchInitialData() {
+        if (this.masterItems.length > 0) return;
+
+        this.runGS('getInitialData').then(res => {
+          if (res.status === 'success') {
+            this.departments = res.departments || [];
+            this.masterItems = res.items || [];
+          }
+        });
+      },
+
+      selectDept(name) {
+        this.txDept = name;
+        this.deptSearch = name;
+        this.showDeptList = false;
+      },
+
+      clearDept() {
+        this.deptSearch = ''
+        this.showDeptList = false
+      },
+
+      openModalItem(item) {
+        if (item) {
+          // Edit Mode: Spread item agar data stokMin masuk ke form
+          this.itemForm = { ...item, isEdit: true };
+        } else {
+          // Add Mode: Reset form
+          this.itemForm = {
+            kode: '',
+            nama: '',
+            satuan: '',
+            lokasi: '',
+            stokMin: 0, // Pastikan di-set awal
+            status: 'AKTIF',
+            isEdit: false
+          };
+        }
+        this.showModalItem = true;
+      },
+
+      saveItem() {
+        // Validasi sebelum kirim
+        if (!this.itemForm.kode || !this.itemForm.nama) {
+          return Swal.fire('Gagal', 'Kode dan Nama tidak boleh kosong!', 'warning');
+        }
+
+        const dataBersih = JSON.parse(JSON.stringify(this.itemForm));
+
+        this.runGS('adminSaveItem', dataBersih).then(res => {
+          if (res.status === 'success') {
+            Swal.fire('Berhasil', res.message, 'success');
+            this.showModalItem = false;
+            this.fetchMaster(); // Refresh tabel master
+            this.fetchDashboard(); // Refresh angka dashboard
+          }
+        });
+      },
+     
+      // Fungsi pendukung untuk reset form
+      closeModalItem() {
+        this.showModalItem = false;
+        this.itemForm = {
+          kode: '',
+          nama: '',
+          satuan: '',
+          lokasi: '',
+          stokMin: 0,
+          foto: '',
+          isEdit: false,
+          status: 'AKTIF'
+        };
+      },
+
+      // Fungsi membuka modal
+      openModalLokasi(item) {
+        this.lokasiForm = {
+          kode: item.kode,
+          nama: item.nama,
+          lokasiBaru: item.lokasi // Load lokasi lama ke input
+        };
+        this.showModalLokasi = true;
+      },
+
+      // Fungsi mengirim data ke GS
+      saveLokasi() {
+        if (!this.lokasiForm.lokasiBaru) {
+          return Swal.fire('Peringatan', 'Lokasi tidak boleh kosong', 'warning');
+        }
+
+        // AMBIL NAMA USER DARI STATE LOGIN
+        // Pastikan 'this.user.nama' adalah variabel tempat Anda menyimpan nama user saat login
+        const penanggungJawab = this.user.nama || "User Tidak Dikenal";
+
+        this.loading = true; // Aktifkan loading jika ada
+
+        this.runGS(
+          'updateItemLocation', 
+          this.lokasiForm.kode, 
+          this.lokasiForm.lokasiBaru, 
+          penanggungJawab // KIRIM KE GS
+        ).then(res => {
+          this.loading = false;
+          if (res.status === 'success') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: res.message,
+              timer: 1500,
+              showConfirmButton: false
+            });
+            this.showModalLokasi = false;
+            this.fetchMaster(); // Refresh data tabel
+          } else {
+            Swal.fire('Gagal', res.message, 'error');
+          }
+        }).catch(err => {
+          this.loading = false;
+          console.error(err);
+        });
+      },
+
+      // Fungsi untuk Centang Semua atau Hapus Semua Centang
+      toggleSelectAll(column) {
+        const allOptions = this.filterOptions[column];
+        
+        // Jika semua sudah terpilih, maka kosongkan (Unselect All)
+        if (this.activeFilters[column].length === allOptions.length) {
+          this.activeFilters[column] = [];
+        } else {
+          // Jika belum semua, maka masukkan semua opsi (Select All)
+          this.activeFilters[column] = [...allOptions];
+        }
+      },
+
+      // Fungsi Toggle Dropdown
+      toggleFilter(column) {
+        // Jika klik kolom yang sama, tutup. Jika klik kolom lain, pindah dropdown.
+        this.showFilterDropdown = this.showFilterDropdown === column ? null : column;
+      },
+
+      sortBy(key) {
+        if (this.sortConfig.key === key) {
+          this.sortConfig.direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+          this.sortConfig.key = key;
+          this.sortConfig.direction = 'asc';
+        }
+      },
+      
+      getSortIcon(key) {
+        if (this.sortConfig.key !== key) return '<i class="fa-solid fa-sort text-slate-300 ml-1"></i>';
+        return this.sortConfig.direction === 'asc' 
+          ? '<i class="fa-solid fa-sort-up text-blue-600 ml-1"></i>' 
+          : '<i class="fa-solid fa-sort-down text-blue-600 ml-1"></i>';
+      },
+
+      navTo(p) {
+
+        if (this.page && this.page !== p) {
+          this.pageHistory.push(this.page);
+        }
+
+        this.page = p;
+        this.isSidebarOpen = false;
+
+        this.handlePageLogic(p);
+      },
+
+      handlePageLogic(p) {
+
+        if (p === 'dashboard') {
+          this.fetchDashboard();
+        }
+
+        if (p === 'master') {
+          this.masterSearch = '';
+          this.fetchMaster();
+        }
+
+        if (p === 'users') {
+          this.fetchUsers();
+        }
+
+        if (p === 'cek_stok' || p === 'transaksi') {
+          this.searchQuery = '';
+          this.searchResults = [];
+          this.fetchInitialData();
+        }
+
+        if (p === 'pembatalan') {
+          this.fetchRecentTx();
+        }
+      },
+
+      goBack() {
+
+        if (this.pageHistory.length === 0) return;
+
+        const previousPage = this.pageHistory.pop();
+
+        this.page = previousPage;
+        this.isSidebarOpen = false;
+
+        this.handlePageLogic(previousPage);
+      },
+      
+      printTable() {
+        window.print();
+      },
+
+      // 🔹 Wrapper aman untuk backend
+      async safeRunGS(method, payload = {}) {
+        if (!this.user?.token) {
+          Swal.fire('Error', 'User belum login atau token kosong', 'error');
+          return { status: 'error', message: 'Token tidak tersedia', data: [] };
+        }
+
+        // Pastikan payload selalu objek, tambahkan token
+        const sendPayload = { ...payload, token: this.user.token };
+
+        try {
+          const res = await this.runGS(method, sendPayload);
+
+          console.log(`Response from ${method}:`, res);
+
+          if (!res) return { status: 'error', message: 'Tidak ada response dari server', data: [] };
+          if (Array.isArray(res)) return { status: 'success', data: res };
+          if (res.status === 'success') {
+            if (!res.data) res.data = [];
+            return res;
+          }
+          return res;
+        } catch (err) {
+          console.error(`Error in safeRunGS (${method}):`, err);
+          return { status: 'error', message: 'Terjadi kesalahan server', data: [] };
+        }
+      },
+
+      // 🔹 Ambil recent transactions + update dashboard otomatis
+      async fetchRecentTx() {
+        this.isLoadingTx = true;
+        try {
+          // 🔐 Pastikan token string tersedia
+          const token = this.user?.token;
+          if (!token) {
+            Swal.fire('Error', 'User belum login', 'error');
+            this.recentTx = [];
+            return;
+          }
+
+          // Panggil backend dengan token
+          const res = await this.runGS('getRecentTransactions', token);
+
+          if (res.status === 'success') {
+            // Ambil data transaksi atau array kosong
+            this.recentTx = Array.isArray(res.data) ? res.data : [];
+          } else {
+            console.warn('fetchRecentTx backend error:', res.message);
+            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+            this.recentTx = [];
+          }
+
+          // Refresh dashboard jika fungsi tersedia
+          if (typeof this.fetchDashboard === 'function') this.fetchDashboard();
+
+        } catch (err) {
+          console.error('fetchRecentTx error:', err);
+          this.recentTx = [];
+          Swal.fire('Error', 'Gagal memuat transaksi', 'error');
+        } finally {
+          this.isLoadingTx = false;
+        }
+      },
+
+      // 🔹 Batalkan transaksi & live update recentTx + dashboard
+      async doCancelTx(tx) {
+        if (!this.user?.token) {
+          Swal.fire('Error', 'User belum login', 'error');
+          return;
+        }
+
+        try {
+          const confirm = await Swal.fire({
+            title: 'Batalkan Transaksi?',
+            html: `Anda yakin ingin membatalkan transaksi <b>${tx.jenis}</b> untuk <b>${tx.nama}</b> (Qty: ${tx.qty})?<br><br><span class="text-sm text-rose-500">Stok akan otomatis dikembalikan.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Batalkan!'
+          });
+
+          if (!confirm.isConfirmed) return;
+
+          Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+          // Panggil backend dengan token
+          const res = await this.runGS('cancelTransaction', this.user.token, tx.rowId);
+
+          Swal.close();
+
+          if (res.status === 'success') {
+            Swal.fire('Berhasil', res.message, 'success');
+
+            // Update live recentTx
+            const index = this.recentTx.findIndex(t => t.rowId === tx.rowId);
+            if (index !== -1) this.recentTx[index].ket = `[DIBATALKAN] ${this.recentTx[index].ket}`;
+
+            if (typeof this.fetchDashboard === 'function') this.fetchDashboard();
+          } else {
+            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+          }
+        } catch (err) {
+          console.error('doCancelTx error:', err);
+          Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error');
+        }
+      },
+
+      isVoid(tx) {
+        return String(tx.ket || '')
+          .toUpperCase()
+          .includes('[DIBATALKAN]');
+      },
+
+      fetchDashboard() {
+        this.loading = true;
+        const f = this.dashFilter;
+
+        this.runGS('getDashboardDataEnterprise', f.type, f.start, f.end, f.dept)
+          .then(res => {
+            this.dashData = res;
+            this.loading = false;
+            this.showDeptResultsReport = false;
+
+            if (res.lowStock) {
+              this.lowStockItems = res.lowStock;
+            } else {
+              this.fetchLowStockData();
+            }
+
+            if (res.recentTx && res.recentTx.length === 0) {
+              Swal.fire({
+                icon: 'info',
+                title: 'Tidak Ada Data',
+                text: `Tidak ditemukan transaksi untuk periode ini.`
+              });
+            }
+
+          })
+          .catch(err => {
+            console.error(err);
+            this.loading = false;
+          });
+      },
+
+      handleSearch() {
+        if (this.page !== 'cek_stok') return;
+
+        clearTimeout(this.searchTimeout);
+
+        this.searchTimeout = setTimeout(() => {
+          if (this.searchQuery.length < 3) {
+            this.searchResults = [];
+            return;
+          }
+
+          this.runGS('searchItems', this.searchQuery, true)
+            .then(res => {
+              this.searchResults = res.map(x => ({...x, imgFailed: false}));
+            });
+
+        }, 400);
+      },
+
+      clearSearch() {
+        this.searchQuery = '';
+        this.searchResults = [];
+        
+        this.$nextTick(() => {
+          this.$refs.scanInput?.focus();
+        });
+      },
+
+
+      // CART & TRANSAKSI
+      addToCart(item, qty = 1) {
+        if (this.page !== 'transaksi') return;
+
+        const existing = this.cart.find(c => c.kode === item.kode);
+
+        if (existing) {
+          existing.qty += qty;
+        } else {
+          this.cart.push({
+            ...item,
+            qty: qty
+          });
+        }
+
+        const Toast = Swal.mixin({
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 800
+        });
+
+        Toast.fire({
+          icon: 'success',
+          title: `+${qty} ${item.nama}`
+        });
+      },
+
+      processTx() {
+         // VALIDASI CATATAN WAJIB DIISI
+         if (!this.txNote || this.txNote.trim() === '') {
+             Swal.fire('Perhatian', 'Mohon isi PO / Reservasi / Keterangan terlebih dahulu!', 'warning');
+             return;
+         }
+
+         if (!this.txDept) {
+             Swal.fire('Opps', 'Department wajib diisi!', 'warning');
+             return;
+         }
+         
+         const payload = { items: this.cart, jenis: this.txType, dept: this.txDept, user: this.user.nama, ket: this.txNote };
+         
+         let confirmText = `Proses ${this.txType}?`;
+         if(this.txType === 'RETURN') confirmText = 'Barang akan dikembalikan ke Stok?';
+         
+         Swal.fire({
+            title: 'Konfirmasi', 
+            text: confirmText,
+            icon: 'question',
+            showCancelButton:true, 
+            confirmButtonColor: '#2563eb',
+            confirmButtonText:'Ya, Proses'
+         }).then(r=>{
+            if(r.isConfirmed) this.runGS('prosesTransaksiMulti', payload).then(res => {
+               if(res.status==='success') { 
+                   Swal.fire('Berhasil',res.message,'success'); 
+                   this.cart=[]; this.txNote=''; this.searchQuery=''; this.searchResults=[];
+                   this.fetchDashboard(); this.txDept = '';
+               }
+               else Swal.fire('Gagal',res.message,'error');
+            });
+         });
+      },
+
+      handleScan() {
+        if (this.page !== 'transaksi') return;
+
+        if (!Array.isArray(this.masterItems) || this.masterItems.length === 0) {
+          Swal.fire('Tunggu', 'Data barang belum siap', 'info');
+          return;
+        }
+
+        const code = (this.searchQuery || '').trim();
+        if (!code) return;
+
+        const now = Date.now();
+        if (now - this.lastScanTime < 300) return;
+        this.lastScanTime = now;
+
+        const item = this.masterItems.find(i =>
+          String(i.kode).toLowerCase() === code.toLowerCase()
+        );
+
+        if (!item) {
+          Swal.fire('404', 'Barang tidak ditemukan', 'warning');
+          this.resetScan();
+          return;
+        }
+
+        this.addToCart(item, this.scanQty || 1);
+        this.resetScan();
+      },
+      
+      resetScan() {
+        this.searchQuery = ''
+        this.scanQty = 1
+
+        this.$nextTick(() => {
+          this.$refs.scanInput?.focus()
+        })
+      },
+
+      flashSuccess() {
+        // optional: bisa tambahkan sound / efek
+        console.log('Scan sukses')
+      },
+
+      flashError(msg) {
+        console.warn(msg)
+      },
+
+      exportPivotPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const f = this.dashFilter;
+        const data = this.filteredHistory; // Menggunakan data yang sudah terfilter di layar
+
+        if (data.length === 0) {
+          return Swal.fire('Info', 'Tidak ada data untuk diekspor', 'info');
+        }
+
+        // 1. HEADER LAPORAN
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(30, 41, 59); // Slate-800
+        doc.text("LAPORAN DISTRIBUSI BARANG", 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100);
+        const periode = `Periode: ${f.start || 'Semua'} s/d ${f.end || 'Sekarang'}`;
+        doc.text(periode, 14, 27);
+        doc.text(`Tipe Aktivitas: ${f.type} | Department: ${f.dept || 'SEMUA'}`, 14, 32);
+        
+        // Garis Pemisah
+        doc.setDrawColor(226, 232, 240);
+        doc.line(14, 35, 196, 35);
+
+        // 2. LOGIKA PIVOT (Grouping berdasarkan Department)
+        const grouped = data.reduce((acc, item) => {
+          const key = item.dept || 'TANPA DEPARTMENT';
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(item);
+          return acc;
+        }, {});
+
+        let currentY = 42;
+
+        // 3. RENDER TABEL PER DEPARTMENT
+        Object.keys(grouped).forEach((dept, index) => {
+          const items = grouped[dept];
+          const totalQty = items.reduce((sum, i) => sum + Number(i.qty), 0);
+
+          // Cek jika halaman hampir habis, buat halaman baru
+          if (currentY > 250) {
+            doc.addPage();
+            currentY = 20;
+          }
+
+          doc.autoTable({
+            startY: currentY,
+            head: [
+              [
+                { content: `DEPT: ${dept.toUpperCase()}`, colSpan: 4, styles: { fillColor: [79, 70, 229], halign: 'left' } },
+                { content: `TOTAL: ${totalQty}`, colSpan: 1, styles: { fillColor: [67, 56, 202], halign: 'right' } }
+              ],
+              ['Waktu', 'Kode Barang', 'Nama Barang', 'Jenis', 'Qty']
+            ],
+            body: items.map(i => [
+              i.tanggal,
+              i.kode,
+              i.nama,
+              i.jenis,
+              { content: i.qty, styles: { halign: 'right', fontStyle: 'bold' } }
+            ]),
+            theme: 'striped',
+            headStyles: { fontSize: 9, fontStyle: 'bold' },
+            bodyStyles: { fontSize: 8 },
+            columnStyles: {
+              0: { cellWidth: 35 },
+              1: { cellWidth: 30 },
+              2: { cellWidth: 'auto' },
+              3: { cellWidth: 25, halign: 'center' },
+              4: { cellWidth: 20 }
+            },
+            margin: { left: 14, right: 14 },
+            didDrawPage: (data) => {
+              // Tambahkan nomor halaman di footer
+              doc.setFontSize(8);
+              doc.text(`Halaman ${doc.internal.getNumberOfPages()}`, 14, doc.internal.pageSize.height - 10);
+            }
+          });
+
+          currentY = doc.lastAutoTable.finalY + 10;
+        });
+
+        // 4. SIMPAN FILE
+        const fileName = `Laporan_WMS_${f.dept || 'Global'}_${new Date().getTime()}.pdf`;
+        doc.save(fileName);
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF Berhasil Dibuat',
+          text: 'File sedang diunduh...',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      },
+      
+      openScanner() {
+        if (this.html5QrcodeScanner) return;
+
+        this.showScanner = true;
+
+        this.$nextTick(() => {
+          const readerEl = document.getElementById("reader");
+          if (!readerEl) return console.warn("Element #reader tidak ditemukan");
+
+          const getBoxSize = () => {
+            const maxBox = 300;
+            const size = Math.min(
+              maxBox,
+              readerEl.offsetHeight * 0.9,
+              readerEl.offsetWidth * 0.9
+            );
+            return Math.max(size, 50); // minimum 50px
+          };
+
+          const onScan = async (decodedText) => {
+            if (this.isScanLocked) return;
+            this.isScanLocked = true;
+
+            this.scannedItems.push(decodedText);
+            this.scanSuccessFlash = true;
+            setTimeout(() => this.scanSuccessFlash = false, 300);
+
+            const item = this.masterItems.find(i =>
+              String(i.kode).toLowerCase() === decodedText.toLowerCase()
+            );
+
+            if (item) this.addToCart(item, this.scanQty || 1);
+            else Swal.fire({ icon: 'warning', title: 'Tidak ditemukan', timer: 1000, showConfirmButton: false });
+
+            setTimeout(() => this.isScanLocked = false, 1000);
+          };
+
+          this.html5QrcodeScanner = new Html5Qrcode("reader");
+
+          Html5Qrcode.getCameras()
+            .then(devices => {
+              if (!devices || !devices.length) return Swal.fire("Error", "Tidak ada kamera ditemukan", "error");
+
+              const backCam = devices.find(d => d.label.toLowerCase().includes("back") || d.label.toLowerCase().includes("rear"));
+              this.activeCameraId = backCam ? backCam.id : devices[0].id;
+
+              return this.html5QrcodeScanner.start(
+                this.activeCameraId,
+                { fps: 10, qrbox: { width: getBoxSize(), height: getBoxSize() }, aspectRatio: 1 },
+                onScan
+              );
+            })
+            .catch(err => Swal.fire("Error", "Tidak dapat mengakses kamera", "error"));
+
+          // resize handler
+          this._resizeHandler = async () => {
+            if (!this.html5QrcodeScanner || !this.activeCameraId) return;
+            const newSize = getBoxSize();
+            try {
+              await this.html5QrcodeScanner.stop();
+              await this.html5QrcodeScanner.start(
+                this.activeCameraId,
+                { fps: 10, qrbox: { width: newSize, height: newSize }, aspectRatio: 1 },
+                onScan
+              );
+            } catch(err) {
+              console.warn("Resize restart gagal:", err);
+            }
+          };
+
+          window.addEventListener("resize", this._resizeHandler);
+        });
+      },
+
+      closeScanner() {
+        if (this.html5QrcodeScanner) {
+          this.html5QrcodeScanner.stop()
+            .then(() => {
+              this.html5QrcodeScanner.clear();
+              this.html5QrcodeScanner = null;
+              this.activeCameraId = null;
+
+            })
+            .catch(() => {});
+        }
+
+        // 🔥 Hapus resize listener
+        if (this._resizeHandler) {
+          window.removeEventListener("resize", this._resizeHandler);
+          this._resizeHandler = null;
+        }
+
+        this.isScanLocked = false;
+        this.scanSuccessFlash = false;
+        this.showScanner = false;
+      },
+      
+      // MASTER DATA
+      fetchMaster() { 
+          this.runGS('adminGetItems').then(res => {
+              // Tambahkan flag imgFailed untuk master juga
+              this.masterItems = res.map(x => ({...x, imgFailed: false}));             
+          }); 
+      },
+
+      fetchUsers() {
+        if (!this.user || !this.user.token) {
+          console.warn('User belum login, token kosong');
+          return;
+        }
+
+        this.runGS('adminGetAllUsers', this.user.token)
+          .then(res => {
+            if (res && !res.status) { 
+              this.usersList = res; 
+            } else if (res && res.status === 'error') {
+              Swal.fire('Error', res.message, 'error');
+            }
+          })
+          .catch(err => {
+            console.error("Gagal mengambil user:", err);
+          });
+      },
+
+      manageUser(username, action, rolePayload) {
+        if (!username || !action) {
+          Swal.fire('Error', 'Parameter tidak lengkap', 'error');
+          return;
+        }
+
+        const token = localStorage.getItem('wms_v5_final');
+        if (!token) {
+          Swal.fire('Session Expired', 'Silakan login ulang', 'warning');
+          return;
+        }
+
+        Swal.fire({
+          title: 'Memproses...',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        google.script.run
+          .withSuccessHandler(res => {
+            Swal.close();
+
+            if (!res || typeof res !== 'object') {
+              Swal.fire('Error', 'Response tidak valid dari server', 'error');
+              return;
+            }
+
+            if (res.status === 'success') {
+              Swal.fire('Berhasil', res.message || 'Berhasil diproses', 'success');
+              this.fetchUsers();
+            } else {
+              Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+            }
+          })
+          .withFailureHandler(err => {
+            Swal.close();
+            Swal.fire('System Error', err?.message || err.toString(), 'error');
+          })
+          .adminManageUser(token, username, action, rolePayload);
+      },
+
+      approveUser(username, role) {
+        this.manageUser(username, 'APPROVE', role);
+      },
+
+      rejectUser(username) {
+        this.manageUser(username, 'REJECT');
+      },
+
+      updateUserRole(username, role) {
+        this.manageUser(username, 'UPDATE_ROLE', role);
+      },
+
+      toggleUserStatus(username) {
+        this.manageUser(username, 'TOGGLE_STATUS');
+      },
+
+      deleteUser(username) {
+        Swal.fire({
+          title: 'Hapus user?',
+          text: 'Data tidak bisa dikembalikan',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#ef4444'
+        }).then(result => {
+          if (result.isConfirmed) {
+            this.manageUser(username, 'DELETE');
+          }
+        });
+      },
+
+      openChat() {
+        if (!this.user) return Swal.fire('Error', 'User belum login', 'error');
+        this.showChat = true;
+        this.fetchChat();
+
+        if (this.chatInterval) clearInterval(this.chatInterval);
+        this.chatInterval = setInterval(() => {
+          if (!this.showChat) return;
+          this.fetchChatLight();
+        }, 5000); // cek setiap 5 detik
+      },
+
+      // Tutup chat
+      closeChat() {
+        this.showChat = false;
+        this.stopChatInterval();
+      },
+
+      stopChatInterval() {
+        if (this.chatInterval) {
+          clearInterval(this.chatInterval);
+          this.chatInterval = null;
+        }
+      },
+
+      // Ambil semua history chat
+      fetchChat() {
+        google.script.run.withSuccessHandler(res => {
+          const newMessages = res || [];
+          this.chatMessages = newMessages;
+          this.lastChatCount = newMessages.length;
+          this.scrollToBottom();
+        }).getChatMessages();
+      },
+
+      // Cek pesan baru
+      fetchChatLight() {
+        google.script.run.withSuccessHandler(res => {
+          const newMessages = res || [];
+          if (newMessages.length > this.lastChatCount) {
+            // Tandai pesan baru
+            const newCount = newMessages.length - this.lastChatCount;
+            this.chatMessages = newMessages.map((msg, i) => ({
+              ...msg,
+              isNew: i >= this.lastChatCount // flag untuk highlight
+            }));
+            this.lastChatCount = newMessages.length;
+            this.scrollToBottom(true);
+          }
+        }).getChatMessages();
+      },
+
+      // Scroll otomatis, optional highlight
+      scrollToBottom(highlight = false) {
+        this.$nextTick(() => {
+          const container = this.$refs.chatContainer;
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+            if (highlight) {
+              // hilangkan flag isNew setelah 2 detik
+              setTimeout(() => {
+                this.chatMessages = this.chatMessages.map(msg => ({ ...msg, isNew: false }));
+              }, 2000);
+            }
+          }
+        });
+      },
+
+      // Kirim pesan baru
+      sendMessage() {
+          const message = (this.newMessage || '').trim();
+          if (!message) return;
+
+          const sender = this.user?.nama || "Guest"; // 🔹 perbaikan di sini
+          google.script.run.withSuccessHandler(res => {
+              if (res?.status === 'success') {
+                  this.newMessage = '';
+                  this.fetchChatLight(); // refresh chat setelah kirim
+              } else {
+                  Swal.fire('Error', res.message || 'Gagal mengirim pesan', 'error');
+              }
+          }).sendChatMessage(sender, message);
+      },
+
+      requestNotificationPermission() {
+        if ("Notification" in window && Notification.permission !== "granted") {
+          Notification.requestPermission();
+        }
+      },
+    }
+  }).mount('#app');
+</script>
+</body>
+</html>
