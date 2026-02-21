@@ -1,0 +1,1123 @@
+const SS_ID = "1guZaTU5fiElIGBXUwTDOl6b7zwSaaxWi0qM6hdKDUs8"; // Ganti ID Spreadsheet
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index')
+      .setTitle('WMS SPAREPART')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+}
+
+// --- AUTH USERS ---
+function loginUser(username, password) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+
+  // Username case-insensitive, password case-sensitive
+  username = String(username).trim().toLowerCase();
+  password = String(password).trim();
+
+  for (let i = 1; i < data.length; i++) {
+    const u = String(data[i][0] || '').trim().toLowerCase(); // Username sheet
+    const p = String(data[i][1] || '').trim();               // Password sheet
+    const nama = String(data[i][2] || '').trim();            // Nama
+    const role = String(data[i][3] || '').trim();            // Role
+    const status = String(data[i][4] || '').trim();          // Status AKTIF/TIDAK
+
+    if (u === username && p === password) {
+      if (status !== 'AKTIF') {
+        return { status: 'error', message: 'Akun tidak aktif. Tunggu persetujuan Admin.' };
+      }
+
+      // Buat token baru
+      const token = Utilities.getUuid();
+      const expiry = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 jam
+
+      // Simpan token & expiry di sheet: token Kolom F (index 6), expiry Kolom G (index 7)
+      sheet.getRange(i + 1, 6).setValue(token);
+      sheet.getRange(i + 1, 7).setValue(expiry);
+
+      return {
+        status: 'success',
+        token: token,
+        nama: nama,
+        role: role,
+        expiredAt: expiry.toISOString() // bisa dikirim ke frontend
+      };
+    }
+  }
+
+  return { status: 'error', message: 'Login gagal, username atau password salah.' };
+}
+
+function registerUser(nama, username, password) {
+  if (!nama || !username || !password) {
+    return { status: 'error', message: 'Data tidak lengkap.' };
+  }
+
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+  const cleanUsername = String(username).trim().toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0] || '').trim().toLowerCase() === cleanUsername) {
+      return { status: 'error', message: 'Username sudah digunakan.' };
+    }
+  }
+
+  // Struktur kolom: [Username, Password, Nama, Role, Status, Token]
+  sheet.appendRow([cleanUsername, password, nama, 'STAFF', 'PENDING', '', '']);
+
+  return { status: 'success', message: 'Registrasi berhasil, Tunggu approval VicKey' };
+}
+
+function toggleUserStatus(username, makeActive) {
+  const sh = SpreadsheetApp.openById(SS_ID).getSheetByName('Users');
+  const data = sh.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0] || '').trim().toLowerCase() === String(username).trim().toLowerCase()) { 
+      sh.getRange(i + 1, 5).setValue(makeActive ? 'AKTIF' : 'NONAKTIF');
+      return { status: 'success' };
+    }
+  }
+  return { status: 'error', message: 'User tidak ditemukan' };
+}
+
+function checkUserActive(username) {
+  const sh = SpreadsheetApp.openById(SS_ID).getSheetByName('Users');
+  const data = sh.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).toLowerCase() === String(username).toLowerCase()) {
+      return data[i][4] === 'AKTIF';
+    }
+  }
+  return false;
+}
+
+function updateProfile(token, newNama, newPassword) {
+  try {
+    const ss = SpreadsheetApp.openById(SS_ID);
+    const sheet = ss.getSheetByName('Users');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+
+      // 🔐 cari berdasarkan token
+      if (data[i][5] === token) {
+
+        // Update nama
+        sheet.getRange(i + 1, 3).setValue(newNama);
+
+        // Update password jika diisi
+        if (newPassword && newPassword.trim() !== '') {
+          sheet.getRange(i + 1, 2).setValue(newPassword);
+        }
+
+        return {
+          status: 'success',
+          message: 'Profil berhasil diperbarui'
+        };
+      }
+    }
+
+    return { status: 'error', message: 'User tidak ditemukan' };
+
+  } catch (err) {
+    return { status: 'error', message: err.message };
+  }
+}
+
+function logoutUser(token) {
+  const sheet = SpreadsheetApp.openById(SS_ID).getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if ((data[i][5] || '') === token) {
+      sheet.getRange(i + 1, 6, 1, 2).setValues([['', '']]); // hapus token n expiry
+      return { status: 'success', message: 'Logout berhasil' };
+    }
+  }
+
+  return { status: 'error', message: 'Token tidak valid' };
+}
+
+// --- ADMIN MANAGEMENT ---
+function isAdminByToken(token) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    const t = String(data[i][5] || '').trim();
+    const expiry = data[i][6];
+    const role = String(data[i][3] || '').trim();
+
+    if (t === token && role === 'ADMIN') {
+      if (!expiry || new Date() > new Date(expiry)) return false;
+      return true;
+    }
+  }
+  return false;
+}
+
+function adminGetAllUsers(token) {
+  try {
+    // Validasi ketat, akan throw Error jika bukan admin atau token expired
+    requireAdmin(token); 
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+
+  const data = SpreadsheetApp.openById(SS_ID)
+    .getSheetByName('Users')
+    .getDataRange()
+    .getValues();
+
+  // Kembalikan data tanpa mengekspos password (kolom index 1) dan token
+  return data.slice(1).map(r => ({
+    username: r[0],
+    nama: r[2],
+    role: r[3],
+    status: r[4]
+  }));
+}
+
+function adminManageUser(token, username, action, payload) {
+
+  if (!token || !username || !action) {
+    return { status: 'error', message: 'Parameter tidak lengkap' };
+  }
+
+  let adminUser;
+
+  try {
+    adminUser = requireAdmin(token); // pastikan return data admin
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+
+  // Cegah ubah akun sendiri
+  if (String(adminUser.username).toLowerCase() === String(username).toLowerCase()) {
+    return { status: 'error', message: 'Tidak bisa mengubah akun sendiri' };
+  }
+
+  const sheet = SpreadsheetApp.openById(SS_ID).getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+
+  const allowedRoles = ['ADMIN', 'MANAGER', 'STAFF', 'VIEWER'];
+
+  for (let i = 1; i < data.length; i++) {
+
+    const rowUsername = String(data[i][0]).toLowerCase();
+
+    if (rowUsername === String(username).toLowerCase()) {
+
+      switch (action) {
+
+        case 'APPROVE': {
+          const role = String(payload || 'STAFF').toUpperCase();
+
+          if (!allowedRoles.includes(role)) {
+            return { status: 'error', message: 'Role tidak valid' };
+          }
+
+          sheet.getRange(i + 1, 4).setValue(role);      // Kolom Role
+          sheet.getRange(i + 1, 5).setValue('AKTIF');  // Kolom Status
+
+          return { status: 'success', message: 'User berhasil disetujui' };
+        }
+
+        case 'REJECT':
+        case 'DELETE':
+          sheet.deleteRow(i + 1);
+          return { status: 'success', message: 'User berhasil dihapus' };
+
+        case 'TOGGLE_STATUS': {
+          const currentStatus = String(data[i][4]).toUpperCase();
+          const newStatus = currentStatus === 'AKTIF' ? 'NONAKTIF' : 'AKTIF';
+
+          sheet.getRange(i + 1, 5).setValue(newStatus);
+          return { status: 'success', message: 'Status berhasil diubah' };
+        }
+
+        case 'UPDATE_ROLE': {
+          const newRole = String(payload || '').toUpperCase();
+
+          if (!allowedRoles.includes(newRole)) {
+            return { status: 'error', message: 'Role tidak valid' };
+          }
+
+          sheet.getRange(i + 1, 4).setValue(newRole);
+          return { status: 'success', message: 'Role berhasil diupdate' };
+        }
+
+        default:
+          return { status: 'error', message: 'Action tidak dikenali' };
+      }
+    }
+  }
+
+  return { status: 'error', message: 'User tidak ditemukan' };
+}
+
+function validateSession(identifier) {
+  const sheet = SpreadsheetApp.openById(SS_ID).getSheetByName('Users');
+  const data = sheet.getDataRange().getValues();
+
+  const idStr = String(identifier).trim();
+  const idLower = idStr.toLowerCase();
+  const now = new Date();
+
+  for (let i = 1; i < data.length; i++) {
+
+    const rowUsername = String(data[i][0] || '').trim().toLowerCase();
+    const rowToken = String(data[i][5] || '').trim();
+    const status = String(data[i][4] || '').trim().toUpperCase();
+    const expiry = data[i][6];
+
+    const isMatch =
+      rowToken === idStr ||
+      rowUsername === idLower;
+
+    if (isMatch && status === 'AKTIF') {
+
+      // Jika login via TOKEN → cek expiry
+      if (rowToken === idStr) {
+        if (!expiry || now > new Date(expiry)) {
+          return {
+            valid: false,
+            code: 'SESSION_EXPIRED',
+            message: 'Sesi telah berakhir, silakan login ulang.'
+          };
+        }
+      }
+
+      return {
+        valid: true,
+        username: data[i][0],
+        nama: data[i][2],
+        role: data[i][3]
+      };
+    }
+  }
+
+  return {
+    valid: false,
+    code: 'INVALID_SESSION',
+    message: 'Sesi tidak valid atau tidak ditemukan.'
+  };
+}
+
+function requireAdmin(token) {
+
+  const cleanToken = String(token || '').trim();
+
+  if (!cleanToken) {
+    throw new Error('NO_TOKEN');
+  }
+
+  const session = validateSession(cleanToken);
+
+  if (!session || !session.valid) {
+    throw new Error(session?.code || 'SESSION_INVALID');
+  }
+
+  const role = String(session.role || '').trim().toUpperCase();
+
+  if (role !== 'ADMIN') {
+    throw new Error('NOT_ADMIN');
+  }
+
+  return true;
+}
+
+function adminSavePermissions(token, permissions) {
+  try {
+    // 1. Validasi Keamanan (Hanya Admin yang bisa simpan permission)
+    requireAdmin(token);
+    
+    const ss = SpreadsheetApp.openById(SS_ID);
+    let sheet = ss.getSheetByName('ROLE_PERMISSIONS');
+
+    const headers = ['ROLE', 'dashboard', 'transaksi', 'barang', 'users', 'pembatalan', 'update_lokasi'];
+
+    if (!sheet) {
+      sheet = ss.insertSheet('ROLE_PERMISSIONS');
+    }
+
+    sheet.clearContents();
+    sheet.appendRow(headers);
+
+    // 2. Loop melalui objek permissions dari frontend (admin, manager, staff, viewer)
+    for (let role in permissions) {
+      sheet.appendRow([
+        role.toLowerCase(), // Pastikan nama role ditulis dalam huruf kecil di sheet
+        permissions[role].dashboard ? 1 : 0,
+        permissions[role].transaksi ? 1 : 0,
+        permissions[role].barang ? 1 : 0,
+        permissions[role].users ? 1 : 0,
+        permissions[role].pembatalan ? 1 : 0,
+        permissions[role].update_lokasi ? 1 : 0
+      ]);
+    }
+
+    return { status: 'success', message: 'Hak akses berhasil disimpan.' };
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+}
+
+function adminGetPermissions(token) {
+
+  if (!token) {
+    return { status: 'error', message: 'Token tidak ditemukan' };
+  }
+
+  try {
+    const adminUser = requireAdmin(token);
+    if (!adminUser) {
+      return { status: 'error', message: 'Unauthorized' };
+    }
+
+    const ss = SpreadsheetApp.openById(SS_ID);
+    const sheet = ss.getSheetByName('ROLE_PERMISSIONS');
+
+    if (!sheet) {
+      return { status: 'error', message: 'Sheet ROLE_PERMISSIONS tidak ditemukan' };
+    }
+
+    const data = sheet.getDataRange().getValues();
+
+    if (!data || data.length < 2) {
+      return { status: 'success', data: {} };
+    }
+
+    const headers = data[0].map(h => String(h).toLowerCase().trim());
+    const result = {};
+
+    for (let i = 1; i < data.length; i++) {
+
+      const row = data[i];
+      const role = String(row[0] || '').toUpperCase().trim();
+
+      if (!role) continue;
+
+      result[role] = {};
+
+      for (let j = 1; j < headers.length; j++) {
+        const permissionName = headers[j];
+        const cellValue = row[j];
+
+        result[role][permissionName] = 
+          cellValue === 1 || 
+          String(cellValue).toUpperCase() === 'TRUE';
+      }
+    }
+
+    return { status: 'success', data: result };
+
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+}
+
+function getRolePermissions() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('ROLE_PERMISSIONS');
+  if (!sheet) return {};
+
+  const data = sheet.getDataRange().getValues();
+  let result = {};
+
+  for (let i = 1; i < data.length; i++) {
+    result[data[i][0]] = {
+      dashboard: data[i][1] == 1,
+      transaksi: data[i][2] == 1,
+      barang: data[i][3] == 1,
+      users: data[i][4] == 1,
+      pembatalan:    data[i][5] == 1,
+      update_lokasi: data[i][6] == 1
+    };
+  }
+
+  return result;
+}
+
+// --- DASHBOARD ---//
+function getDashboardDataEnterprise(filterType, dateStartStr, dateEndStr, filterDept) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheetBarang = ss.getSheetByName('Data Barang');
+  const sheetRiwayat = ss.getSheetByName('Riwayat');
+
+  // --- 1. PROSES DATA BARANG (STATISTIK & STOK MINIMUM) ---
+  const dataBarang = sheetBarang.getDataRange().getValues();
+  const stockAlerts = {}; 
+  let totalItem = 0;
+  let totalStok = 0;
+  let totalLowStock = 0;
+  let categories = new Set();
+
+  for (let i = 1; i < dataBarang.length; i++) {
+    const row = dataBarang[i];
+    const kode = String(row[0]);
+    if (!kode || kode === "") continue;
+
+    const stokSekarang = Number(row[5] || 0); // Kolom F
+    const statusAktif = String(row[6]).toUpperCase(); // Kolom G
+    const rawStokMin = row[8]; // Kolom I
+    const stokMin = Number(rawStokMin || 0);
+    const kategori = String(row[4] || "").trim(); // Kolom E
+
+    if (kategori) {
+      categories.add(kategori);
+    }
+
+    if (statusAktif === 'AKTIF') {
+      totalItem++;
+      totalStok += stokSekarang;
+      
+      let isLow = false;
+      if (rawStokMin !== "" && rawStokMin !== null) {
+        if (stokSekarang <= stokMin) {
+          isLow = true;
+          totalLowStock++;
+        }
+      }
+      stockAlerts[kode] = isLow;
+    }
+  }
+
+  // --- 2. PROSES RIWAYAT DENGAN FILTER DEPT & TANGGAL ---
+  const dataRiwayat = sheetRiwayat.getDataRange().getValues();
+  let history = [];
+  let globalSelisihCount = 0; 
+  
+  const start = dateStartStr ? new Date(dateStartStr + 'T00:00:00') : new Date('2000-01-01');
+  const end = dateEndStr ? new Date(dateEndStr + 'T23:59:59') : new Date();
+  
+  // Normalisasi filterDept agar tidak sensitif huruf besar/kecil dan spasi
+  const fDept = filterDept ? String(filterDept).trim().toUpperCase() : "";
+
+  // Ambil data riwayat terbaru (Loop dari bawah ke atas)
+  for (let i = dataRiwayat.length - 1; i >= 1; i--) {
+    const row = dataRiwayat[i];
+    if (!row[0]) continue; // Lewati jika baris kosong
+
+    const txDate = new Date(row[0]);
+    const kodeItem = String(row[1]);
+    const jenis = row[3];
+    const qty = Number(row[4] || 0);
+    
+    // Sesuaikan INDEX KOLOM berikut dengan Spreadsheet Anda:
+    const deptRow = String(row[10] || ''); // Asumsi kolom K (Index 10) adalah Department
+    const userRow = String(row[5] || '-'); // Asumsi kolom H (Index 7) adalah User
+    const saldoAkhir = row[8] || 0;        // Asumsi kolom F (Index 5) adalah Saldo Akhir
+    const ketRow = row[6] || '-';         // Asumsi kolom J (Index 9) adalah Keterangan
+    const isVoid = String(row[9] || '').trim().toLowerCase() === 'dibatalkan';
+
+    // --- LOGIKA FILTERING ---
+    const isWithinDate = (txDate >= start && txDate <= end);
+    const isMatchJenis = (filterType === 'ALL' || jenis === filterType);
+    const isMatchDept = (fDept === "" || deptRow.trim().toUpperCase() === fDept);
+
+    if (isWithinDate) {
+      // Hitung Selisih Opname Global (hanya yang masuk range tanggal)
+      if (jenis === 'OPNAME' && qty !== 0) {
+        globalSelisihCount++;
+      }
+
+      // Masukkan ke history jika lolos filter Jenis dan Department
+      if (isMatchJenis && isMatchDept) {
+        if (history.length < 200) { // Limit 200 data terbaru
+          history.push({
+            tanggal: Utilities.formatDate(txDate, "Asia/Jakarta", "dd/MM/yy HH:mm"),
+            kode: kodeItem,
+            nama: row[2],
+            jenis: jenis,
+            qty: qty,
+            user: userRow,
+            dept: deptRow || '-',
+            ket: ketRow,
+            stokAkhir: saldoAkhir,
+            isLowStock: stockAlerts[kodeItem] || false,
+            isVoid: isVoid,
+          });
+        }
+      }
+    }
+  }
+
+  return { 
+    totalItem, 
+    totalStok, 
+    totalLowStock, 
+    selisihOpname: globalSelisihCount,
+    categories: Array.from(categories).sort(),
+    recentTx: history 
+  };
+}
+
+// --- TRANSAKSI & SEARCH ---
+function searchItems(query, includeNonActive) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  const data = sheet.getDataRange().getValues();
+  const results = [];
+  const q = String(query).toLowerCase();
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!includeNonActive && row[6] !== 'AKTIF') continue;
+    
+    // Cari berdasarkan Kode atau Nama
+    if (String(row[0]).toLowerCase().includes(q) || String(row[1]).toLowerCase().includes(q)) {
+      results.push({
+        kode: row[0],
+        nama: row[1],
+        satuan: row[2],
+        lokasi: row[3],
+        stok: Number(row[5]),
+        status: row[6],
+        foto: fixDriveUrl(row[7]) // Kolom H
+      });
+      if (results.length > 30) break; 
+    }
+  }
+  return results;
+}
+
+function getInitialData() {
+  try {
+    const ss = SpreadsheetApp.openById(SS_ID);
+
+    // === DEPARTMENT ===
+    const sheetDept = ss.getSheetByName("department");
+    const depts = sheetDept
+      .getRange(2, 1, sheetDept.getLastRow() - 1, 1)
+      .getValues()
+      .flat()
+      .filter(String);
+
+    // === DATA BARANG ===
+    const sheet = ss.getSheetByName("Data Barang");
+    const data = sheet.getDataRange().getValues();
+
+    let items = [];
+
+    if (data.length > 1) {
+      items = data.slice(1).map(r => ({
+        kode: r[0],
+        nama: r[1],
+        satuan: r[2],
+        lokasi: r[3],
+        stok: Number(r[5]) || 0,
+        status: r[6],
+        foto: r[7] || '',
+        stokMin: r[8] === "" ? "" : Number(r[8]),
+        imgFailed: false
+      }));
+    }
+
+    return {
+      status: "success",
+      departments: depts,
+      items: items
+    };
+
+  } catch (e) {
+    return { status: "error", message: e.message };
+  }
+}
+
+function prosesTransaksiMulti(payload) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheetBarang = ss.getSheetByName('Data Barang');
+  const sheetRiwayat = ss.getSheetByName('Riwayat');
+  const lock = LockService.getScriptLock();
+  
+  try {
+    lock.waitLock(10000); 
+    const dataBarang = sheetBarang.getDataRange().getValues();
+    const timestamp = new Date();
+    const items = payload.items; 
+
+    // Mapping Row agar pencarian cepat
+    let mapKode = {};
+    for(let i=1; i<dataBarang.length; i++) {
+      mapKode[dataBarang[i][0]] = i + 1; 
+    }
+
+    let successCount = 0;
+
+    for (let item of items) {
+      const rowIndex = mapKode[item.kode];
+      if (!rowIndex) continue; 
+
+      const currentStok = Number(sheetBarang.getRange(rowIndex, 6).getValue() || 0);
+      let newStok = currentStok;
+      let changeQty = Number(item.qty);
+
+      // LOGIKA TRANSAKSI
+      if (payload.jenis === 'MASUK' || payload.jenis === 'RETURN') {
+        // Return dari customer = Stok Bertambah
+        newStok += changeQty;
+      } else if (payload.jenis === 'KELUAR') {
+        // Penjualan/Pemakaian = Stok Berkurang
+        if (currentStok < changeQty) return { status: 'error', message: `Stok ${item.nama} Kurang! Sisa: ${currentStok}` };
+        newStok -= changeQty;
+        changeQty = changeQty; // Di riwayat jadi minus
+      } else if (payload.jenis === 'OPNAME') {
+        // Opname = Reset stok ke angka fisik
+        const stokFisik = changeQty;
+        const selisih = stokFisik - currentStok;
+        newStok = stokFisik;
+        changeQty = selisih; // Di riwayat catat selisihnya (+/-)
+      }
+
+      sheetBarang.getRange(rowIndex, 6).setValue(newStok);
+      sheetRiwayat.appendRow([
+        timestamp, item.kode, item.nama, payload.jenis, changeQty, payload.user, payload.ket, currentStok, newStok, '', payload.dept, 
+      ]);
+      successCount++;
+    }
+
+    return { status: 'success', message: `${successCount} item berhasil diproses.` };
+
+  } catch (e) {
+    return { status: 'error', message: 'Error: ' + e.message };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getRecentTransactions(token) {
+  try {
+    // 🔐 Validasi token
+    if (!token) {
+      console.log('getRecentTransactions dipanggil tanpa token (diabaikan)');
+      return { status: 'error', message: 'Token tidak valid', data: [] };
+    }
+
+    const ss = SpreadsheetApp.openById(SS_ID);
+    const userSheet = ss.getSheetByName('Users');
+    const permSheet = ss.getSheetByName('ROLE_PERMISSIONS');
+    const riwayatSheet = ss.getSheetByName('Riwayat');
+
+    // 🔍 Cek sheet
+    if (!userSheet || !permSheet || !riwayatSheet) {
+      console.error('Sheet tidak lengkap:', {
+        Users: !!userSheet,
+        ROLE_PERMISSIONS: !!permSheet,
+        Riwayat: !!riwayatSheet
+      });
+      throw new Error('Sheet Users / ROLE_PERMISSIONS / Riwayat tidak lengkap');
+    }
+
+    const users = userSheet.getDataRange().getValues();
+    const perms = permSheet.getDataRange().getValues();
+
+    // 🔐 Cari user berdasarkan token (trim + lowercase)
+    const currentUser = users.find(u => String(u[5] || '').trim().toLowerCase() === String(token).trim().toLowerCase());
+    if (!currentUser) {
+      console.warn('Unauthorized access attempt: token tidak ditemukan');
+      return { status: 'error', message: 'Unauthorized', data: [] };
+    }
+
+    const role = String(currentUser[3] || '').toLowerCase();
+
+    // 🔐 Cek permission pembatalan
+    const allowed = perms.some(p => String(p[0] || '').toLowerCase() === role && Number(p[5] || 0) === 1);
+    if (!allowed) {
+      console.warn('Akses ditolak untuk user:', currentUser[2] || 'Unknown', '(permission pembatalan tidak aktif)');
+      return { status: 'error', message: 'Akses ditolak', data: [] };
+    }
+
+    const lastRow = riwayatSheet.getLastRow();
+    if (lastRow <= 1) return { status: 'success', data: [] };
+
+    const data = riwayatSheet.getRange(2, 1, lastRow - 1, riwayatSheet.getLastColumn()).getValues();
+
+    // Ambil 50 transaksi terakhir, sesuai frontend
+    const recentData = data.slice(-50).reverse();
+
+    const recent = recentData.map((r, index) => ({
+      rowId: lastRow - recentData.length + 1 + index, // row asli di sheet
+      tgl: r[0] ? Utilities.formatDate(new Date(r[0]), "GMT+7", "dd/MM/yyyy HH:mm") : "-",
+      kode: r[1],
+      nama: r[2],
+      jenis: r[3],
+      qty: r[4],
+      user: r[5],
+      dept: r[10],
+      ket: String(r[6] || "")
+    }));
+
+    return { status: 'success', data: recent };
+
+  } catch (e) {
+    console.error('Error getRecentTransactions:', e.toString());
+    return { status: 'error', message: e.toString(), data: [] };
+  }
+}
+
+function cancelTransaction(token, rawRowId) {
+  const lock = LockService.getScriptLock();
+  const rowId = Number(rawRowId);
+
+  try {
+    lock.waitLock(10000);
+
+    const ss = SpreadsheetApp.openById(SS_ID);
+    const sheetUsers = ss.getSheetByName('Users');
+    const sheetPerms = ss.getSheetByName('ROLE_PERMISSIONS');
+    const sheetRiwayat = ss.getSheetByName('Riwayat');
+    const sheetBarang = ss.getSheetByName('Data Barang');
+
+    if (!sheetUsers || !sheetPerms || !sheetRiwayat || !sheetBarang) {
+      throw new Error("Konfigurasi database tidak lengkap.");
+    }
+
+    const users = sheetUsers.getDataRange().getValues();
+    const perms = sheetPerms.getDataRange().getValues();
+
+    // 🔐 Cari user berdasarkan token
+    const currentUser = users.find(u => String(u[5] || '').trim() === String(token).trim());
+    if (!currentUser) {
+      return { status: 'error', message: 'Sesi tidak valid / Unauthorized' };
+    }
+
+    const role = String(currentUser[3] || '').toLowerCase();
+    const hasPermission = perms.some(p => String(p[0] || '').toLowerCase() === role && Number(p[5] || 0) === 1);
+    if (!hasPermission) {
+      return { status: 'error', message: 'Akses ditolak: Tidak memiliki izin pembatalan.' };
+    }
+
+    // 🔹 Ambil data transaksi
+    const lastRow = sheetRiwayat.getLastRow();
+    if (rowId > lastRow || rowId < 2) {
+      return { status: 'error', message: 'Baris transaksi tidak ditemukan.' };
+    }
+
+    const lastCol = sheetRiwayat.getLastColumn();
+    const txData = sheetRiwayat.getRange(rowId, 1, 1, lastCol).getValues()[0];
+
+    const kode = String(txData[1] || '').trim();
+    const jenis = String(txData[3] || '').trim().toUpperCase();
+    const qty = Number(txData[4] || 0);
+    const ket = String(txData[6] || '');
+
+    if (!kode || !jenis) {
+      throw new Error("Data transaksi kosong atau tidak lengkap.");
+    }
+
+    if (ket.toUpperCase().includes("[DIBATALKAN]")) {
+      throw new Error("Transaksi ini sudah dibatalkan sebelumnya.");
+    }
+
+    if (['OPNAME', 'UPDATE_LOKASI'].includes(jenis)) {
+      throw new Error("Transaksi jenis ini tidak dapat dibatalkan otomatis.");
+    }
+
+    // 🔹 Update stok barang
+    const dataBarang = sheetBarang.getDataRange().getValues();
+    const rowIndex = dataBarang.findIndex(r => String(r[0] || '').trim() === kode);
+    if (rowIndex === -1) {
+      throw new Error(`Kode Barang ${kode} tidak ditemukan.`);
+    }
+
+    let currentStok = Number(dataBarang[rowIndex][5] || 0);
+    let newStok = currentStok;
+
+    if (['MASUK', 'RETURN'].includes(jenis)) newStok -= qty;
+    if (jenis === 'KELUAR') newStok += qty;
+
+    if (newStok < 0) {
+      throw new Error("Pembatalan ditolak karena stok akan menjadi minus.");
+    }
+
+    // 🔹 Simpan perubahan
+    sheetBarang.getRange(rowIndex + 1, 6).setValue(newStok);
+    sheetRiwayat.getRange(rowId, 7).setValue("[DIBATALKAN] " + ket);
+    sheetRiwayat.getRange(rowId, 12).setValue(new Date());
+
+    SpreadsheetApp.flush();
+
+    return { status: 'success', message: `Transaksi dibatalkan. Stok sekarang: ${newStok}` };
+
+  } catch (e) {
+    console.error('Error cancelTransaction:', e);
+    return { status: 'error', message: e.message || 'Terjadi kesalahan sistem' };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+///* Ambil data barang yang stoknya dibawah minimum
+function getLowStockForPR() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  if (!sheet) return [];
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  let result = [];
+
+  // Loop mulai baris ke-2 (index 1)
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+
+    const kode = row[0] || '';
+    const nama = row[1] || '';
+    const satuan = row[2] || '';
+
+    const stok = parseFloat(row[5]) || 0;      // Kolom F
+    const minStok = parseFloat(row[8]) || 0;   // Kolom I
+
+    // Validasi: hanya proses jika minStok > 0
+    if (minStok > 0 && stok <= minStok) {
+
+      // Hitung qty permintaan (agar stok jadi 2x minStok)
+      const qtyRequest = (minStok * 2) - stok;
+
+      result.push({
+        kode: kode,
+        nama: nama,
+        satuan: satuan,
+        stok: stok,
+        minStok: minStok,
+        qtyRequest: qtyRequest > 0 ? qtyRequest : 0
+      });
+    }
+  }
+
+  // Sort berdasarkan nama (aman jika kosong)
+  result.sort((a, b) => (a.nama || '').localeCompare(b.nama || ''));
+
+  return result;
+}
+
+// Fungsi pembantu untuk konversi link Google Drive
+function fixDriveUrl(url) {
+  if (!url) return "";
+  const strUrl = String(url);
+  
+  if (strUrl.includes("drive.google.com")) {
+    let fileId = "";
+    // Pola 1: /d/FILE_ID/
+    if (strUrl.includes("/d/")) {
+      fileId = strUrl.split("/d/")[1].split("/")[0];
+    } 
+    // Pola 2: id=FILE_ID
+    else if (strUrl.includes("id=")) {
+      fileId = strUrl.split("id=")[1].split("&")[0];
+    }
+    
+    if (fileId) {
+      // Format Direct Link yang paling stabil untuk <img> tag
+      return "https://lh3.googleusercontent.com/u/0/d/" + fileId;
+    }
+  }
+  return strUrl;
+}
+
+function adminSaveItem(item) {
+  if (!item) {
+    return { status: 'error', message: 'Backend tidak menerima data (undefined)' };
+  }
+
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  const data = sheet.getDataRange().getValues();
+  
+  // Cari index berdasarkan Kode (Primary Key)
+  const index = data.findIndex(r => String(r[0]) === String(item.kode));
+  
+  // Ambil data stok lama agar tidak berubah saat edit
+  const currentStok = (index > -1) ? data[index][5] : 0;
+  
+  const rowData = [
+    item.kode,               // A (0)
+    item.nama,               // B (1)
+    item.satuan,             // C (2)
+    item.lokasi,             // D (3)
+    '',                      // E (4)
+    currentStok,             // F (5)
+    item.status || 'AKTIF',  // G (6)
+    item.foto || '',         // H (7)
+    item.stokMin === "" ? "" : Number(item.stokMin) // I: Simpan string kosong jika tidak diisi
+  ];
+
+  if (index > -1) {
+    // Mode EDIT
+    sheet.getRange(index + 1, 1, 1, rowData.length).setValues([rowData]);
+    return { status: 'success', message: 'Data barang diperbarui' };
+  } else {
+    // Mode TAMBAH BARU
+    sheet.appendRow(rowData);
+    return { status: 'success', message: 'Barang baru ditambahkan' };
+  }
+}
+
+// Fungsi untuk menarik data ke tabel Master
+function adminGetItems() {
+  const data = SpreadsheetApp.openById(SS_ID).getSheetByName('Data Barang').getDataRange().getValues();
+  return data.slice(1).map(r => ({
+    kode: r[0], 
+    nama: r[1], 
+    satuan: r[2], 
+    lokasi: r[3], 
+    stok: r[5], 
+    status: r[6], 
+    foto: r[7], 
+    stokMin: r[8] || 0 // Pastikan stokMin ditarik ke Frontend
+  }));
+}
+
+/// * Fungsi update lokasi dengan pencatatan riwayat ///
+function updateItemLocation(kode, lokasiBaru, userNama) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheetBarang = ss.getSheetByName('Data Barang');
+  const sheetRiwayat = ss.getSheetByName('Riwayat');
+  const allData = sheetBarang.getDataRange().getValues();
+  
+  for (let i = 1; i < allData.length; i++) {
+    if (allData[i][0] == kode) {
+      const lokasiLama = allData[i][3]; 
+      const namaBarang = allData[i][1]; 
+      const stokSekarang = allData[i][5]; 
+      
+      // Update lokasi di Master Data
+      sheetBarang.getRange(i + 1, 4).setValue(lokasiBaru);
+      
+      // Catat ke Riwayat
+      const timestamp = new Date();
+      const keterangan = "Pindah Lokasi: " + lokasiLama + " ➔ " + lokasiBaru;
+      
+      sheetRiwayat.appendRow([
+        timestamp,      // Kolom A: Tanggal
+        kode,           // Kolom B: Kode
+        namaBarang,     // Kolom C: Nama
+        'UPDATE_LOKASI',// Kolom D: Jenis
+        0,              // Kolom E: Qty
+        userNama,       // Kolom F: USER (PASTIKAN INI TERISI)
+        keterangan,     // Kolom G: Keterangan
+        stokSekarang,   // Kolom H: Stok Awal
+        stokSekarang    // Kolom I: Stok Akhir
+      ]);
+      
+      return { status: 'success', message: 'Lokasi diperbarui oleh ' + userNama };
+    }
+  }
+  return { status: 'error', message: 'Data tidak ditemukan' };
+}
+
+function addBarang(data, userRole) {
+  // Cek role di sisi server
+  if (userRole === 'STAFF') {
+    return { status: 'error', message: 'Unauthorized: Staff dilarang menambah data.' };
+  }
+  
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  // ... proses appendRow ...
+}
+
+function adminToggleStatusItem(kode) {
+  const sheet = SpreadsheetApp.openById(SS_ID).getSheetByName('Data Barang');
+  const data = sheet.getDataRange().getValues();
+  for(let i=1; i<data.length; i++){
+    if(data[i][0] == kode) {
+      let newStatus = data[i][6] === 'AKTIF' ? 'NONAKTIF' : 'AKTIF';
+      sheet.getRange(i+1, 7).setValue(newStatus);
+      return { status: 'error', message: 'Kode tidak ditemukan' };
+    }
+  }
+}
+
+// Simpan Pesan Baru
+function sendChatMessage(sender, message) {
+  if (!sender) sender = 'guest';
+  
+  if (!sender || !message) return { status: 'error', message: 'Sender atau message kosong' };
+
+  const ss = SpreadsheetApp.openById(SS_ID);
+  let sheet = ss.getSheetByName("CHAT_LOG");
+
+  if (!sheet) {
+    sheet = ss.insertSheet("CHAT_LOG");
+    sheet.appendRow(["Timestamp", "Sender", "Message"]);
+  }
+
+  const timestamp = new Date();
+  sheet.appendRow([timestamp, sender, message]);
+
+  return { status: 'success' };
+}
+
+// Ambil 50 pesan terakhir
+function getChatMessages() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName("CHAT_LOG");
+  if (!sheet) return [];
+
+  const data = sheet.getDataRange().getValues();
+  data.shift(); // buang header
+
+  return data.slice(-50).map(row => ({
+    time: row[0] ? Utilities.formatDate(new Date(row[0]), "GMT+7", "HH:mm") : "-",
+    sender: row[1] || "Guest",
+    text: row[2] || ""
+  }));
+}
+
+function getDataCategories() {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  const data = sheet.getDataRange().getValues();
+  
+  let categories = new Set();
+  
+  // Mulai loop dari baris ke-2 (index 1) untuk melewati header
+  for (let i = 1; i < data.length; i++) {
+    const cat = String(data[i][4]).trim(); // Kolom E adalah index 4
+    if (cat) {
+      categories.add(cat);
+    }
+  }
+  
+  return Array.from(categories).sort();
+}
+
+function getExportStockData(selectedCategory) {
+  const ss = SpreadsheetApp.openById(SS_ID);
+  const sheet = ss.getSheetByName('Data Barang');
+  const data = sheet.getDataRange().getValues();
+  
+  let result = [];
+  
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const stok = Number(row[5]); // Kolom F (Index 5) = Stok
+    const category = String(row[4]).trim(); // Kolom E (Index 4) = Kategori
+    
+    // Logika Filter: Stok harus > 0 DAN (Kategori cocok ATAU Kategori 'ALL')
+    if (stok > 0) {
+      if (selectedCategory === 'ALL' || category === selectedCategory) {
+        result.push({
+          "KODE": row[0],
+          "NAMA BARANG": row[1],
+          "KATEGORI": category,
+          "LOKASI": row[3],
+          "SATUAN": row[2],
+          "STOK": stok
+        });
+      }
+    }
+  }
+  
+  return result;
+}
