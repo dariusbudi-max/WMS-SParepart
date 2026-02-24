@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Camera Barcode Scanner</title>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+</head>
+<body>
+  <video id="video" autoplay playsinline width="320" height="240"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    async function startCamera() {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = stream;
+      requestAnimationFrame(scanFrame);
+    }
+
+    function scanFrame() {
+      if (!video.videoWidth) {
+        requestAnimationFrame(scanFrame);
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+      if (code) {
+        // Kirim barcode ke parent GAS frontend
+        window.parent.postMessage({ barcode: code.data }, '*');
+        // Stop scanning sementara agar tidak spam
+        return;
+      }
+
+      requestAnimationFrame(scanFrame);
+    }
+
+    startCamera();
+  </script>
+</body>
+</html>
