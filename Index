@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WMS PRO - Dashboard & Inventory</title>
+    <title>WMS SPAREPART</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -44,14 +44,15 @@
 
         <div v-if="!isLoggedIn" class="flex-1 flex items-center justify-center p-6 bg-slate-900">
             <div class="bg-white w-full max-w-md p-10 rounded-[3rem] shadow-2xl">
-                <h1 class="text-2xl font-black text-slate-800 text-center mb-2 uppercase">PBB System</h1>
-                <p class="text-center text-slate-400 text-xs mb-8 font-bold">Inventory & Asset Management</p>
+                <h1 class="text-2xl font-black text-slate-800 text-center mb-2 uppercase">PBB <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">SPAREPART</span></h1>
+                <p class="text-center text-slate-400 text-xs mb-8 font-bold">PT Bintang Indokarya Gemilang</p>
                 
                 <div class="space-y-4">
                     <input v-model="loginData.username" type="text" placeholder="Username" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 ring-indigo-500">
                     <input v-model="loginData.password" @keyup.enter="handleLogin" type="password" placeholder="Password" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 ring-indigo-500">
                     <button @click="handleLogin" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-xl transition-all uppercase text-xs tracking-widest">
-                        Sign In
+                        <span>MASUK SYSTEM</span>
+                        <i class="fa-solid fa-arrow-right-to-bracket group-hover:translate-x-1 transition-transform"></i>
                     </button>
                     <div class="text-center mt-6">
                         <p class="text-xs text-slate-400 font-bold">Belum punya akun?</p>
@@ -63,7 +64,7 @@
             <div v-if="showRegisterModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
                 <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8">
                     <h3 class="text-xl font-black mb-2 text-slate-800">Registrasi User</h3>
-                    <p class="text-xs text-slate-400 mb-6 font-bold text-rose-500">*Akun perlu persetujuan Admin sebelum bisa digunakan.</p>
+                    <p class="text-xs text-slate-400 mb-6 font-bold text-rose-500">*Akun perlu approve VicKey sebelum bisa digunakan.</p>
                     
                     <div class="space-y-4">
                         <input v-model="regData.nama" type="text" placeholder="Nama Lengkap" class="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none focus:ring-2 ring-indigo-500">
@@ -77,7 +78,13 @@
                     </div>
                 </div>
             </div>
+
+            <div class="absolute bottom-6 text-slate-500 text-[10px] font-medium opacity-50">
+              &copy; {{ new Date().getFullYear() }} SPAREPART-WH PT Bintang Indokarya Gemilang
+            </div>
         </div>
+
+        
 
         <template v-else>
             
@@ -88,8 +95,8 @@
                 </div>
 
                 <nav class="flex flex-col gap-2 px-3 mt-4">
-                    <button 
-                        @click="page = 'dashboard'; sidebarOpen = false" 
+                    <button v-if="['ADMIN', 'STAFF', 'MANAGER'].includes(userData.role)"
+                        @click="navigate('dashboard')"
                         :class="page === 'dashboard' ? 'sidebar-item-active' : 'text-slate-500 hover:bg-slate-50'" 
                         class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all text-sm text-left">
                         <i class="fa-solid fa-chart-pie text-lg w-6 text-center"></i> 
@@ -109,7 +116,7 @@
                         :class="page === 'inventory' ? 'sidebar-item-active' : 'text-slate-500 hover:bg-slate-50'" 
                         class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl font-bold transition-all text-sm text-left">
                         <i class="fa-solid fa-boxes-stacked text-lg w-6 text-center"></i> 
-                        <span>Master Stock</span>
+                        <span>Stock Holding</span>
                     </button>
 
                     <div class="my-2 border-t border-slate-100 mx-2"></div>
@@ -135,14 +142,14 @@
                         :class="page === 'user_management' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'" 
                         class="w-full flex items-center gap-4 px-4 py-3 rounded-xl font-bold transition-all text-sm text-left">
                         <i class="fa-solid fa-users-gear text-lg w-6 text-center"></i> 
-                        <span>Manajemen User</span>
+                        <span>Management User</span>
                     </button>
                 </nav>      
 
                 <div class="mt-auto bg-slate-50 p-4 rounded-3xl flex items-center gap-3 border border-slate-100">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-black text-xs uppercase">{{ userData.nama.substring(0,2) }}</div>
+                    <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-black text-xs uppercase">{{ userData.nama?.substring(0,2) }}</div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs font-black text-slate-800 truncate">{{ userData.nama }}</p>
+                        <p class="text-xs font-black text-slate-800 truncate">{{ userData?.nama }}</p>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ userData.role }}</p>
                     </div>
                     <button @click="handleLogout" class="text-rose-500 hover:scale-110 transition-all p-2"><i class="fa-solid fa-power-off"></i></button>
@@ -157,7 +164,7 @@
                     <div class="w-10"></div>
                 </header>
 
-                <main v-if="page === 'dashboard'" class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 animate-fade-in custom-scrollbar">
+                <main v-if="page === 'dashboard' && ['ADMIN', 'STAFF', 'MANAGER'].includes(userData.role)" class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-8 animate-fade-in custom-scrollbar">
     
                     <div class="flex flex-col md:flex-row justify-between items-end gap-4">
                         <div>
@@ -166,7 +173,7 @@
                         </div>
                         <button @click="fetchDashboard" class="group flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl shadow-sm border border-slate-200 hover:text-indigo-600 transition-all">
                             <i class="fa-solid fa-sync text-slate-400 group-hover:rotate-180 transition-transform duration-700"></i>
-                            <span class="text-sm font-bold">Syncrone Data</span>
+                            <span class="text-sm font-bold">Refresh Data</span>
                         </button>
                     </div>
 
@@ -217,7 +224,7 @@
                                         <td class="p-3 font-mono">{{ item.kode }}</td>
                                         <td class="p-3 font-bold">{{ item.nama }}</td>
                                         <td class="p-3 text-center text-rose-600 font-black">{{ item.stok }}</td>
-                                        <td class="p-3 text-right font-black text-slate-800">{{ (item.minStok * 2) - item.stok }}</td>
+                                        <td class="p-3 text-right font-black text-slate-800">{{ item.qtyRequest }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -279,7 +286,7 @@
                                     <tr v-for="tx in filteredHistory.slice(0, 20)" :key="tx.rowId" :class="{'opacity-50 grayscale': tx.isVoid}" class="hover:bg-slate-50">
                                         <td class="px-6 py-4">
                                             <div class="font-black text-slate-800 text-[10px]">{{ tx.user }}</div>
-                                            <div class="text-[9px] text-slate-400 font-bold">{{ tx.tgl }}</div>
+                                            <div class="text-[9px] text-slate-400 font-bold">{{ tx.tanggal }}</div>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="text-[10px] font-mono text-indigo-600 font-bold">{{ tx.kode }}</div>
@@ -300,214 +307,425 @@
                     </div>
                 </main>
 
-                <main v-if="page === 'transaksi'" class="flex-1 flex flex-col overflow-hidden bg-white">
-                    <div class="p-6 border-b flex flex-wrap gap-4 items-end bg-slate-50/50">
-                        <div class="w-20 md:w-24">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Qty</label>
-                            <input 
-                                v-model.number="inputQty" 
-                                ref="qtyInputRef"
-                                @keyup.enter="focusSearch"
-                                type="number" 
-                                min="1"
-                                placeholder="1"
-                                class="w-full py-4 bg-white border-none rounded-2xl shadow-sm font-black text-center text-indigo-600 focus:ring-2 focus:ring-indigo-600 outline-none"
-                            >
-                        </div>
-
-                        <div class="flex-1 min-w-[200px] relative">
-                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1">Cari Kode / Scan</label>
-                            <div class="relative">
-                                <i class="fa-solid fa-barcode absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input 
-                                    v-model="searchQuery" 
-                                    ref="searchInputRef"
-                                    @keyup.enter="handleScan" 
-                                    type="text" 
-                                    placeholder="Scan Barcode / Cari Nama..." 
-                                    class="w-full pl-12 pr-4 py-4 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-indigo-600 outline-none font-bold text-slate-700"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button @click="openScanner" class="w-14 h-14 bg-slate-800 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-slate-900 transition-all">
-                                <i class="fa-solid fa-qrcode text-xl"></i>
-                            </button>
-
-                            <button @click="showCart = !showCart" class="relative w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl hover:bg-indigo-700 transition-all">
-                                <i class="fa-solid fa-cart-shopping text-xl"></i>
-                                <span v-if="cart.length" class="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-bold w-6 h-6 rounded-full border-4 border-white flex items-center justify-center animate-bounce">
-                                    {{ cart.length }}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 flex overflow-hidden">
-                        <div class="flex-1 overflow-y-auto p-6 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 custom-scrollbar">
-                            <div 
-                                v-for="item in searchResults" 
-                                :key="item.kode" 
-                                @click="addToCartWithQty(item)" 
-                                class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer p-4 relative overflow-hidden h-fit"
-                            >
-                                <div class="aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center">
-                                    <i class="fa-solid fa-box-open text-4xl text-slate-200 group-hover:scale-110 transition-transform"></i>
+                <main v-if="page === 'transaksi'" class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+                    <div class="p-4 md:p-6 border-b bg-white shadow-sm z-10">
+                        <div class="max-w-7xl mx-auto flex flex-wrap gap-4 items-end">
+                            <div class="w-24 md:w-32">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Jumlah</label>
+                                <div class="relative group">
+                                    <input 
+                                        v-model.number="inputQty" 
+                                        ref="qtyInputRef"
+                                        @keyup.enter="focusSearch"
+                                        type="number" 
+                                        min="1"
+                                        class="w-full py-4 bg-slate-50 border-2 border-transparent rounded-2xl font-black text-center text-indigo-600 focus:border-indigo-500 focus:bg-white transition-all outline-none text-lg shadow-inner"
+                                    >
                                 </div>
-                                <p class="text-[10px] font-black text-indigo-500 mb-1 uppercase font-mono">{{ item.kode }}</p>
-                                <h4 class="font-bold text-slate-800 text-sm line-clamp-2 uppercase">{{ item.nama }}</h4>
-                                <div class="mt-4 flex justify-between items-end">
-                                    <span class="text-[9px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-500 uppercase">{{ item.lokasi || 'GUDANG' }}</span>
-                                    <div class="text-right">
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase leading-none">Stok</p>
-                                        <span class="text-sm font-black text-slate-700">{{ item.stok }}</span>
+                            </div>
+
+                            <div class="flex-1 min-w-[280px]">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase mb-2 ml-1 tracking-widest">Cari Produk / Scan Barcode</label>
+                                <div class="relative group">
+                                    <i class="fa-solid fa-barcode absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors text-xl"></i>
+                                    <input 
+                                        v-model="searchQuery" 
+                                        ref="searchInputRef"
+                                        @keydown.enter.prevent="handleScan" 
+                                        type="text" 
+                                        placeholder="Ketik nama atau tembak barcode..." 
+                                        class="w-full pl-14 pr-4 py-4 rounded-2xl border-2 border-transparent bg-slate-50 focus:bg-white focus:border-indigo-500 shadow-inner outline-none font-bold text-slate-700 transition-all"
+                                    >
+                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 hidden md:block">
+                                        <kbd class="px-2 py-1 bg-white border shadow-sm rounded-lg text-[10px] text-slate-400 font-black">ENTER</kbd>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div v-if="showCart" class="fixed lg:static inset-0 lg:w-96 bg-white border-l z-[60] flex flex-col shadow-2xl lg:shadow-none">
-                            <div class="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
-                                <div>
-                                    <h3 class="font-black text-lg">Keranjang</h3>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                                        {{ cart.length }} SKU | Total: {{ totalQtyCart }} Pcs
-                                    </p>
-                                </div>
-                                
-                                <div class="flex gap-2">
-                                    <button @click="resetTransactionForm" class="p-3 rounded-xl bg-slate-100 text-slate-500 hover:text-rose-500 transition-colors" title="Kosongkan Keranjang">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                    <button @click="showCart = false" class="lg:hidden p-3 rounded-xl bg-slate-100 text-slate-500">
-                                        <i class="fa-solid fa-xmark text-xl"></i>
-                                    </button>
-                                </div>
-                            </div>
+                            <div class="flex gap-3">
+                                <button @click="openScanner" class="w-14 h-14 bg-slate-800 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-black hover:-translate-y-1 active:scale-95 transition-all">
+                                    <i class="fa-solid fa-qrcode text-xl"></i>
+                                </button>
 
-                            <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 custom-scrollbar">
-                                <div v-for="(item, idx) in cart" :key="item.kode" 
-                                    :class="isStockInsufficient(item) ? 'border-rose-300 bg-rose-50' : 'bg-white border-slate-200 shadow-sm'"
-                                    class="p-4 rounded-2xl border flex items-center gap-3 transition-all">
-                                    
-                                    <div class="flex-1 min-w-0">
-                                        <div v-if="isStockInsufficient(item)" class="flex items-center gap-1 text-[9px] font-black text-rose-600 uppercase mb-1">
-                                            <i class="fa-solid fa-triangle-exclamation"></i> 
-                                            <span>Stok Tidak Cukup</span>
-                                        </div>
-
-                                        <p class="font-bold text-sm truncate uppercase text-slate-700">{{ item.nama }}</p>
-
-                                        <p v-if="txType === 'KELUAR'" class="text-[10px] text-slate-400 font-medium mt-1">
-                                            Sistem: <span class="font-bold" :class="isStockInsufficient(item) ? 'text-rose-600' : 'text-slate-600'">{{ getMasterStock(item.kode) }}</span>
-                                        </p>
-                                    </div>
-
-                                    <input v-model.number="item.qty" type="number" min="1"
-                                        class="w-14 py-2 bg-slate-100 border-none rounded-lg text-center font-black text-indigo-600 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                                    
-                                    <button @click="removeFromCart(idx)" class="text-slate-300 hover:text-rose-500 p-2 transition-colors">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-white border-t space-y-4">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <select v-model="txType" class="w-full p-3.5 bg-slate-50 rounded-xl text-xs font-black border-none focus:ring-2 focus:ring-indigo-600 outline-none">
-                                        <option value="KELUAR">KELUAR</option>
-                                        <option value="MASUK">MASUK</option>
-                                        <option value="OPNAME">OPNAME</option>
-                                        <option value="RETURN">RETURN</option>
-                                    </select>
-
-                                    <div class="relative">
-                                        <input 
-                                            v-model="txDept" 
-                                            list="deptList" 
-                                            placeholder="Tujuan..." 
-                                            class="w-full p-3.5 bg-slate-50 rounded-xl text-xs font-black border-none focus:ring-2 focus:ring-indigo-600 outline-none pr-8"
-                                        >
-                                        <button v-if="txDept" @click="txDept = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
-                                            <i class="fa-solid fa-circle-xmark text-xs"></i>
-                                        </button>
-                                        <datalist id="deptList">
-                                            <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
-                                        </datalist>
-                                    </div>
-                                </div>
-
-                                <input v-model="txNote" placeholder="Keterangan transaksi..." class="w-full p-3.5 bg-slate-50 rounded-xl text-sm font-medium border-none focus:ring-2 focus:ring-indigo-600 outline-none">
-
-                                <button 
-                                    @click="processTx" 
-                                    :disabled="cart.length === 0 || (!txDept && txType !== 'OPNAME')" 
-                                    class="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-white shadow-lg transition-all transform active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3 group"
-                                    :class="(cart.length > 0 && (txDept || txType === 'OPNAME')) ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-slate-400'"
-                                >
-                                    <span>Simpan Transaksi</span>
-                                    <i class="fa-solid fa-paper-plane group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i>
+                                <button @click="showCart = !showCart" class="relative w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 active:scale-95 transition-all">
+                                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                                    <span v-if="cart.length" class="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black w-6 h-6 rounded-full border-4 border-white flex items-center justify-center animate-bounce">
+                                        {{ cart.length }}
+                                    </span>
                                 </button>
                             </div>
                         </div>
                     </div>
+
+                    <div class="flex-1 flex overflow-hidden">
+                        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+                            <div v-if="searchResults.length === 0" class="h-full flex flex-col items-center justify-center text-slate-300 animate-fade-in">
+                                <i class="fa-solid fa-box-open text-8xl mb-4 opacity-20"></i>
+                                <p class="font-black uppercase tracking-widest text-sm">Siap melayani transaksi...</p>
+                                <p class="text-xs font-medium">Cari barang untuk menambah ke keranjang</p>
+                            </div>
+
+                            <div v-else class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6">
+                                <div 
+                                    v-for="item in searchResults" 
+                                    :key="item.kode" 
+                                    @click="addToCartWithQty(item)" 
+                                    class="group bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:border-indigo-200 hover:-translate-y-2 transition-all cursor-pointer p-3 relative overflow-hidden"
+                                >
+                                    <div class="aspect-square bg-slate-50 rounded-[1.5rem] mb-4 overflow-hidden relative">
+                                        <img v-if="item.foto" :src="fixDriveUrl(item.foto)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                        <div v-else class="w-full h-full flex items-center justify-center">
+                                            <i class="fa-solid fa-image text-slate-200 text-4xl"></i>
+                                        </div>
+                                        
+                                        <div class="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+                                            <span class="px-2 py-1 bg-white/90 backdrop-blur rounded-lg text-[9px] font-black text-slate-600 shadow-sm">
+                                                {{ item.lokasi || 'GUDANG' }}
+                                            </span>
+                                            <span :class="item.stok <= (item.minStok || 1) ? 'bg-rose-500' : 'bg-emerald-500'" class="px-2 py-1 rounded-lg text-[9px] font-black text-white shadow-sm">
+                                                 {{ item.stok }} {{ item.satuan}}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="px-2">
+                                        <p class="text-[9px] font-black text-indigo-500 mb-1 uppercase tracking-tighter">{{ item.kode }}</p>
+                                        <h4 class="font-bold text-slate-800 text-xs md:text-sm line-clamp-2 uppercase h-10 group-hover:text-indigo-600 transition-colors">{{ item.nama }}</h4>
+                                    </div>
+                                    
+                                    <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg">
+                                            <i class="fa-solid fa-plus text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <transition name="slide">
+                            <div v-if="showCart" class="fixed lg:static inset-0 lg:w-[400px] bg-white border-l z-[60] flex flex-col shadow-2xl lg:shadow-none">
+                                <div class="p-6 border-b flex justify-between items-center bg-white">
+                                    <div>
+                                        <h3 class="font-black text-xl text-slate-800 flex items-center gap-2">
+                                            <i class="fa-solid fa-basket-shopping text-indigo-600"></i>
+                                            Keranjang
+                                        </h3>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                            <span class="text-indigo-600">{{ cart.length }}</span> Item terpilih
+                                        </p>
+                                    </div>
+                                    
+                                    <button @click="showCart = false" class="lg:hidden w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-500 transition-all">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50/50 custom-scrollbar">
+                                    <div v-for="(item, idx) in cart" :key="item.kode" 
+                                        :class="isStockInsufficient(item) ? 'border-rose-200 bg-rose-50' : 'bg-white border-slate-100 shadow-sm'"
+                                        class="p-3 rounded-2xl border flex flex-col gap-2 transition-all hover:shadow-md relative shadow-sm"
+                                    >
+                                        <div class="flex justify-between items-start gap-2">
+                                            <div class="flex-1 min-w-0">
+                                                <div v-if="isStockInsufficient(item)" class="flex items-center gap-1 text-[10px] font-bold text-rose-600 uppercase mb-1">
+                                                    <i class="fa-solid fa-circle-exclamation"></i> 
+                                                    <span>Stok sisa {{ getMasterStock(item.kode) }}</span>
+                                                </div>
+                                                
+                                                <h4 class="font-bold text-sm text-slate-800 leading-snug break-words uppercase tracking-tight">
+                                                    {{ item.nama }}
+                                                </h4>
+                                                <p class="text-[10px] font-mono text-slate-400 mt-0.5">{{ item.kode }}</p>
+                                            </div>
+
+                                            <button
+                                                @click="removeFromCart(item.kode)"
+                                                class="text-slate-300 hover:text-rose-500 p-1 transition-colors"
+                                            >
+                                                <i class="fa-solid fa-xmark text-lg"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="flex justify-end items-center mt-1">
+                                            <div class="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shadow-sm">
+                                                <button 
+                                                    @click="item.qty > 1 ? item.qty-- : removeFromCart(item.kode)" 
+                                                    class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                                                >
+                                                    <i class="fa-solid fa-minus text-[10px]"></i>
+                                                </button>
+                                                
+                                                <input 
+                                                    v-model.number="item.qty" 
+                                                    type="number" 
+                                                    min="1"
+                                                    class="w-10 h-8 bg-transparent border-x border-slate-200 text-center font-bold text-slate-700 text-xs focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                >
+                                                
+                                                <button 
+                                                    @click="item.qty++" 
+                                                    class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                                                >
+                                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-6 bg-white border-t-2 border-slate-50 shadow-[0_-10px_20px_rgba(0,0,0,0,0.02)] space-y-4">
+                                    <div class="flex gap-2">
+                                        <select v-model="txType" class="flex-1 p-3.5 bg-slate-100 rounded-xl text-xs font-black border-none focus:ring-2 focus:ring-indigo-600 transition-all outline-none uppercase cursor-pointer">
+                                            <option value="KELUAR">🔴 KELUAR</option>
+                                            <option value="MASUK">🟢 MASUK</option>
+                                            <option value="OPNAME">🔍 OPNAME</option>
+                                            <option value="RETURN">🔄 RETURN</option>
+                                        </select>
+
+                                        <div class="flex-1 relative group">
+                                            <input 
+                                                v-model="txDept" 
+                                                list="deptList" 
+                                                placeholder="Tujuan / Dept..." 
+                                                class="w-full p-3.5 pr-10 bg-slate-100 rounded-xl text-xs font-black border-none focus:ring-2 focus:ring-indigo-600 outline-none uppercase transition-all shadow-inner placeholder:text-slate-400"
+                                            >
+
+                                            <button 
+                                                v-if="txDept" 
+                                                @click="txDept = ''" 
+                                                type="button"
+                                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors p-1"
+                                            >
+                                                <i class="fa-solid fa-circle-xmark text-[14px]"></i>
+                                            </button>
+
+                                            <datalist id="deptList">
+                                                <option v-for="d in departments" :key="d" :value="d">{{ d }}</option>
+                                            </datalist>
+                                        </div>
+                                    </div>
+
+                                    <textarea v-model="txNote" rows="2" placeholder="Catatan transaksi..." class="w-full p-4 bg-slate-100 rounded-xl text-xs font-medium border-none focus:ring-2 focus:ring-indigo-600 outline-none resize-none"></textarea>
+
+                                    <div class="flex items-center justify-between px-2">
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Qty</span>
+                                        <span class="text-2xl font-black text-slate-800">{{ totalQtyCart }}</span>
+                                    </div>
+
+                                    <button 
+                                        @click="processTx" 
+                                        :disabled="cart.length === 0 || (!txDept && txType !== 'OPNAME')" 
+                                        class="w-full py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] text-white shadow-xl transition-all transform active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3"
+                                        :class="(cart.length > 0 && (txDept || txType === 'OPNAME')) ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200' : 'bg-slate-400'"
+                                    >
+                                        <span>Proses</span>
+                                        <i class="fa-solid fa-arrow-right-long animate-bounce-x"></i>
+                                    </button>
+                                    
+                                    <button @click="resetTransactionForm" v-if="cart.length" class="w-full py-2 text-[10px] font-black text-rose-400 hover:text-rose-600 uppercase tracking-widest transition-colors">
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
                 </main>
 
                 <main v-if="page === 'inventory'" class="flex-1 overflow-y-auto p-6 lg:p-10 space-y-6 animate-fade-in custom-scrollbar">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div>
-                            <h2 class="text-3xl font-black text-slate-800 tracking-tight">MASTER STOK SPAREPART</h2>
-                            <p class="text-sm text-slate-500 font-medium">Manajemen ketersediaan barang dan lokasi rak.</p>
+                    <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6 w-full">
+    
+                        <div class="flex flex-col gap-4">
+                            <h2 class="text-3xl font-black text-slate-800 tracking-tight">Cek Stock Sparepart</h2>
+                            
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button 
+                                    @click="stockFilter = 'available'"
+                                    :class="stockFilter === 'available'
+                                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                    class="px-5 h-10 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">
+                                    <i class="fa-solid fa-check-circle mr-1"></i> Stock Ready
+                                </button>
+
+                                <button 
+                                    @click="stockFilter = 'empty'"
+                                    :class="stockFilter === 'empty'
+                                        ? 'bg-rose-600 text-white shadow-md shadow-rose-200'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                    class="px-5 h-10 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">
+                                    <i class="fa-solid fa-times-circle mr-1"></i> Stock Kosong
+                                </button>
+
+                                <button 
+                                    @click="stockFilter = 'all'"
+                                    :class="stockFilter === 'all'
+                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                    class="px-5 h-10 rounded-xl text-xs font-bold uppercase tracking-wider transition-all">
+                                    <i class="fa-solid fa-layer-group mr-1"></i> Semua
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="relative w-full max-w-md group">
-                            <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
-                            <input v-model="inventorySearch" type="text" placeholder="Cari Kode atau Nama Barang..." 
-                                class="w-full pl-14 pr-6 py-4 rounded-2xl bg-white border-none shadow-xl shadow-slate-200/50 outline-none focus:ring-2 focus:ring-indigo-600 font-medium transition-all">
+                        <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto lg:max-w-3xl flex-1 lg:justify-end">
+                            
+                            <div class="relative w-full sm:w-auto flex-1 group">
+                                <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                                
+                                <input v-model="inventorySearch" 
+                                    type="text" 
+                                    placeholder="Cari Kode atau Nama Barang..." 
+                                    class="w-full pl-11 pr-10 py-3 rounded-xl bg-white border border-slate-200 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-medium transition-all text-slate-700 text-sm">
+                                
+                                <button v-if="inventorySearch" 
+                                        @click="inventorySearch = ''" 
+                                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors p-1 rounded-full hover:bg-slate-100">
+                                    <i class="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="w-full sm:w-auto relative">
+                                <select v-model="categoryFilter"
+                                    class="w-full sm:w-48 pl-4 pr-10 py-3 appearance-none rounded-xl bg-white border border-slate-200 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-semibold text-slate-600 text-sm cursor-pointer transition-all">
+                                    <option value="all">Semua Kategori</option>
+                                    <option v-for="cat in categoryOptions" :key="cat" :value="cat">
+                                        {{ cat }}
+                                    </option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs"></i>
+                            </div>
+
+                            <button v-if="['ADMIN', 'STAFF', 'MANAGER'].includes(userData.role)" 
+                                    @click="exportToExcel" 
+                                    class="w-full sm:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl font-bold shadow-sm shadow-emerald-200 transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap text-sm">
+                                <i class="fa-solid fa-file-excel"></i> 
+                                <span>Export</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="overflow-x-auto max-h-[calc(100vh-250px)] overflow-y-auto custom-scrollbar">
-                            <table class="w-full text-left border-separate border-spacing-0">
-                                <thead class="sticky top-0 z-20">
-                                    <tr class="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50">
-                                        <th class="px-8 py-5 border-b border-slate-200">Kode Barang</th>
-                                        <th class="px-8 py-5 border-b border-slate-200">Nama Sparepart</th>
-                                        <th class="px-8 py-5 border-b border-slate-200">Lokasi Rak</th>
-                                        <th class="px-8 py-5 border-b border-slate-200 text-center">Stok Saat Ini</th>
-                                        <th class="px-8 py-5 border-b border-slate-200 text-right">Status</th>
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+
+                        <div class="overflow-auto max-h-[calc(100vh-260px)] custom-scrollbar">
+
+                            <table class="w-full text-sm table-fixed">
+
+                                <!-- HEADER -->
+                                <thead class="sticky top-0 z-20 bg-slate-50 border-b border-slate-200">
+                                    <tr class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+
+                                        <th class="px-5 py-4 w-[12%] text-left">Kode</th>
+                                        <th class="px-5 py-4 w-[26%] text-left">Nama Sparepart</th>
+                                        <th class="px-5 py-4 w-[12%] text-left">Category</th>
+                                        <th class="px-5 py-4 w-[10%] text-left">Satuan</th>
+                                        <th class="px-5 py-4 w-[12%] text-center">Lokasi</th>
+
+                                        <th v-if="['ADMIN','STAFF'].includes(userData.role)"
+                                            class="px-5 py-4 w-[10%] text-center">
+                                            Stok
+                                        </th>
+
+                                        <th class="px-5 py-4 w-[12%] text-center">Foto</th>
+
                                     </tr>
                                 </thead>
+
+                                <!-- BODY -->
                                 <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="item in filteredInventory" :key="item.kode" class="hover:bg-slate-50/80 transition-all group">
-                                        <td class="px-8 py-5 font-mono text-xs font-black text-indigo-600 tracking-tighter">{{ item.kode }}</td>
-                                        <td class="px-8 py-5">
-                                            <div class="font-bold text-slate-700 uppercase text-sm group-hover:text-indigo-600 transition-colors">{{ item.nama }}</div>
-                                            <div v-if="item.stok <= item.minStok" class="text-[9px] font-black text-rose-500 uppercase mt-1 italic">
-                                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Perlu Reorder
+
+                                    <tr v-for="item in filteredInventory"
+                                        :key="item.kode"
+                                        class="hover:bg-slate-50 transition">
+
+                                        <!-- KODE -->
+                                        <td class="px-5 py-4 align-top">
+                                            <div class="space-y-2">
+                                                <div class="font-semibold text-xs font-bold text-indigo-600 uppercase truncate">
+                                                    {{ item.kode }}
+                                                </div>
+
+                                                <div>
+                                                    <span v-if="item.stok <= 0"
+                                                        class="px-2 py-0.5 text-[9px] font-bold rounded bg-rose-50 text-rose-600 border border-rose-100">
+                                                        Habis
+                                                    </span>
+
+                                                    <span v-else-if="item.stok <= (item.stokMin || 1)"
+                                                        class="px-2 py-0.5 text-[9px] font-bold rounded bg-amber-50 text-amber-600 border border-amber-100">
+                                                        Low
+                                                    </span>
+
+                                                    <span v-else
+                                                        class="px-2 py-0.5 text-[9px] font-bold rounded bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                        Ready
+                                                    </span>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td class="px-8 py-5">
-                                            <span class="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                                                {{ item.lokasi || 'TBA' }}
+
+                                        <!-- NAMA -->
+                                        <td class="px-5 py-4">
+                                            <div class="font-semibold text-slate-700 break-words">
+                                                {{ item.nama }}
+                                            </div>
+
+                                            <div v-if="item.stok <= item.minStok"
+                                                class="text-[10px] font-semibold text-rose-500 mt-1 italic">
+                                                Perlu Reorder
+                                            </div>
+                                        </td>
+
+                                        <!-- CATEGORY -->
+                                        <td class="px-5 py-4">
+                                            <span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 truncate inline-block max-w-full">
+                                                {{ item.category || '-' }}
                                             </span>
                                         </td>
-                                        <td class="px-8 py-5 text-center">
-                                            <span :class="item.stok <= item.minStok ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'" 
-                                                class="px-5 py-2 rounded-2xl border font-black text-base shadow-sm">
+
+                                        <!-- SATUAN -->
+                                        <td class="px-5 py-4 text-slate-500 text-xs font-semibold uppercase">
+                                            {{ item.satuan || '-' }}
+                                        </td>
+
+                                        <!-- LOKASI -->
+                                        <td class="px-5 py-4 text-center">
+                                            <span class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+                                                {{ item.lokasi || 'GUDANG' }}
+                                            </span>
+                                        </td>
+
+                                        <!-- STOK -->
+                                        <td v-if="['ADMIN','STAFF'].includes(userData.role)"
+                                            class="px-5 py-4 text-center">
+
+                                            <span :class="item.stok <= item.minStok
+                                                    ? 'bg-rose-50 text-rose-600 border-rose-100'
+                                                    : 'bg-emerald-50 text-emerald-600 border-emerald-100'"
+                                                class="px-4 py-1.5 rounded-xl border font-bold text-sm min-w-[50px] inline-block">
                                                 {{ item.stok }}
                                             </span>
                                         </td>
-                                        <td class="px-8 py-5 text-right">
-                                            <div v-if="item.stok <= 0" class="text-[10px] font-black text-rose-400 uppercase tracking-widest">Out of Stock</div>
-                                            <div v-else-if="item.stok <= item.minStok" class="text-[10px] font-black text-amber-500 uppercase tracking-widest">Low Stock</div>
-                                            <div v-else class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Secure</div>
+
+                                        <!-- FOTO -->
+                                        <td class="px-5 py-4 text-center">
+                                            <div v-if="item.foto"
+                                                @click="previewImage = fixDriveUrl(item.foto)"
+                                                class="w-16 h-14 mx-auto rounded-lg overflow-hidden bg-slate-100 cursor-pointer hover:shadow-md transition">
+
+                                                <img :src="fixDriveUrl(item.foto)"
+                                                    class="w-full h-full object-cover">
+                                            </div>
+
+                                            <div v-else class="text-[10px] text-slate-400 italic">
+                                                No Image
+                                            </div>
                                         </td>
+
                                     </tr>
                                 </tbody>
+
                             </table>
+
                         </div>
                     </div>
                 </main>
@@ -530,6 +748,13 @@
                                 placeholder="Cari Nama Barang, Kode, atau Lokasi..." 
                                 class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                             >
+                            <button 
+                                v-if="inventorySearch"
+                                @click="inventorySearch = ''"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 transition-colors"
+                            >
+                                <i class="fa-solid fa-xmark text-sm"></i>
+                            </button>
                         </div>
                         
                         <div v-if="userData.role === 'ADMIN'" class="flex-shrink-0">
@@ -545,7 +770,7 @@
 
                     <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            <div v-for="item in filteredInventory" :key="item.kode" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group hover:border-indigo-300 transition-all">
+                            <div v-for="item in searchInMaster" :key="item.kode" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden group hover:border-indigo-300 transition-all">
                                 <div class="h-48 bg-slate-100 relative overflow-hidden">
                                     <img :src="fixDriveUrl(item.foto)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                     <div v-if="item.stok <= item.minStok" class="absolute top-3 left-3 bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">
@@ -610,6 +835,7 @@
                                     <tr class="text-[10px] font-black text-slate-400 uppercase">
                                         <th class="p-4 border-b">Detail</th>
                                         <th class="p-4 border-b">Item</th>
+                                        <th class="p-4 border-b text-center">Jenis</th>
                                         <th class="p-4 border-b text-center">Qty</th>
                                         <th class="p-4 border-b text-center">Aksi</th>
                                     </tr>
@@ -621,31 +847,37 @@
                                     >
                                         <td class="p-4">
                                             <div class="font-bold text-xs text-slate-700">{{ tx.user }}</div>
-                                            <div class="text-[9px] text-slate-400 font-medium">{{ tx.tgl }}</div>
+                                            <div class="text-[9px] text-slate-400 font-medium">{{ tx.tanggal }}</div>
                                         </td>
                                         <td class="p-4">
                                             <div class="font-bold text-xs text-slate-800">{{ tx.nama }}</div>
                                             <div class="text-[9px] font-mono text-indigo-500 uppercase">{{ tx.kode }}</div>
                                         </td>
+
+                                        <td class="p-4 text-center text-[10px] font-bold text-slate-700">{{ tx.jenis }}</td>
+                                        
                                         <td class="p-4 text-center">
                                             <span class="font-black text-xs" :class="tx.qty > 0 ? 'text-emerald-500' : 'text-rose-500'">
                                                 {{ tx.qty }}
                                             </span>
                                         </td>
+                                        
                                         <td class="p-4 text-center">
                                             <button 
                                                 @click="handleCancelTx(tx)"
-                                                :disabled="cancellingId == tx.rowId || String(tx.ket || '').toUpperCase().includes('[DIBATALKAN]')"
+                                                :disabled="cancellingId === tx.rowId || isVoided(tx)"
                                                 class="mx-auto min-w-[90px] py-2 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-2 shadow-sm"
-                                                :class="[
-                                                    String(tx.ket || '').toUpperCase().includes('[DIBATALKAN]')
+                                                :class="isVoided(tx)
                                                     ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                    : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white active:scale-90'
-                                                ]"
+                                                    : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white active:scale-90'"
                                             >
-                                                <i v-if="cancellingId == tx.rowId" class="fa-solid fa-circle-notch animate-spin"></i>
+                                                <i 
+                                                    v-if="cancellingId === tx.rowId" 
+                                                    class="fa-solid fa-circle-notch animate-spin">
+                                                </i>
+
                                                 <span v-else>
-                                                    {{ String(tx.ket || '').toUpperCase().includes('[DIBATALKAN]') ? 'VOIDED' : 'VOID' }}
+                                                    {{ isVoided(tx) ? 'VOIDED' : 'VOID' }}
                                                 </span>
                                             </button>
                                         </td>
@@ -688,7 +920,7 @@
                                         <th class="p-4 text-left">Nama & ID</th>
                                         <th class="p-4 text-left">Level Akses</th>
                                         <th class="p-4 text-left">Status Akun</th>
-                                        <th class="p-4 text-right">Tindakan</th>
+                                        <th class="p-4 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-50">
@@ -869,46 +1101,81 @@
             </div>
         </div>
 
-        <div v-if="showLowStock" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div class="bg-white rounded-[2rem] w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl animate-pop-in">
-                <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-rose-50/50">
-                    <div>
-                        <h3 class="text-2xl font-black text-rose-600">STOK KRITIS</h3>
-                        <p class="text-sm text-rose-400 font-bold">Barang berikut sudah mencapai batas minimum stok.</p>
+        <transition name="fade">
+            <div v-if="showLowStock" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <div class="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in duration-300">
+                    
+                    <div class="p-8 border-b border-slate-100 flex justify-between items-center bg-rose-50/30">
+                        <div>
+                            <h3 class="text-2xl font-black text-rose-600 tracking-tight">LOW STOCK</h3>
+                            <p class="text-sm text-slate-500 font-medium">Segera buat Purchase Requisition untuk barang di bawah ini.</p>
+                        </div>
+                        <button @click="showLowStock = false" class="w-12 h-12 rounded-2xl bg-white text-slate-400 hover:text-rose-600 shadow-sm flex items-center justify-center transition-all border border-slate-100">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
-                    <button @click="showLowStock = false" class="w-12 h-12 rounded-2xl bg-white text-slate-400 hover:text-rose-600 shadow-sm flex items-center justify-center transition-all">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                </div>
-                <div class="overflow-y-auto p-4 custom-scrollbar" style="max-height: 60vh;">
-                    <table class="w-full text-left border-separate border-spacing-y-2">
-                        <thead>
-                            <tr class="text-[10px] font-black uppercase tracking-widest text-slate-400 px-4">
-                                <th class="px-6 py-3">Kode</th>
-                                <th class="px-6 py-3">Nama Barang</th>
-                                <th class="px-6 py-3 text-center">Sisa Stok</th>
-                                <th class="px-6 py-3 text-center">Batas Min</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in lowStockItems" :key="item.kode" class="bg-slate-50 rounded-2xl overflow-hidden">
-                                <td class="px-6 py-4 font-mono text-xs font-black text-indigo-600">{{ item.kode }}</td>
-                                <td class="px-6 py-4 font-bold text-slate-700 text-sm uppercase">{{ item.nama }}</td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="bg-rose-100 text-rose-600 px-3 py-1 rounded-lg font-black">{{ item.stok }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-center font-bold text-slate-400">{{ item.minStok }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-6 bg-slate-50 flex justify-end">
-                    <button @click="exportToExcel" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:scale-105 transition-all">
-                        <i class="fa-solid fa-file-excel mr-2"></i> Export Data Kritis
-                    </button>
+
+                    <div class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        <table class="w-full text-left border-separate border-spacing-y-2">
+                            <thead class="sticky top-0 bg-white z-10">
+                                <tr class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    <th class="px-6 py-3">Nama Barang</th>
+                                    <th class="px-6 py-3 text-center">Stok Saat Ini</th>
+                                    <th class="px-6 py-3 text-center">Batas Min</th>
+                                    <th class="px-6 py-3 text-right text-indigo-600">Saran Order (PR)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in lowStockItems" :key="item.kode" class="bg-slate-50 hover:bg-rose-50 transition-all rounded-2xl">
+                                    <td class="px-6 py-4">
+                                        <div class="font-mono text-[10px] text-slate-400">{{ item.kode }}</div>
+                                        <div class="font-bold text-slate-800 uppercase text-sm">{{ item.nama }}</div>
+                                    </td>
+                                    
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-black text-sm">
+                                            {{ item.stok }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td class="px-6 py-4 text-center font-bold text-slate-400">
+                                        {{ item.minStok }}
+                                    </td>
+                                    
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span class="bg-indigo-600 text-white px-4 py-2 rounded-2xl font-black text-sm shadow-md shadow-indigo-100">
+                                                 {{ (Number(item.minStok) * 2) - Number(item.stok) }}
+                                            </span>
+                                            <div class="flex flex-col items-end mt-1">
+                                                <span class="text-[10px] font-bold text-slate-500 uppercase">
+                                                    Target: {{ Number(item.minStok) * 2 }}
+                                                </span>
+                                                <span class="text-[10px] text-slate-400">
+                                                    {{ item.satuan }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div v-if="lowStockItems.length === 0" class="flex flex-col items-center py-20 opacity-30">
+                            <i class="fa-solid fa-clipboard-check text-6xl mb-4"></i>
+                            <p class="font-black uppercase tracking-widest text-xs">Semua Stok Aman</p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-400 uppercase">{{ lowStockItems.length }} Barang Perlu Perhatian</span>
+                        <button @click="exportToExcel" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                            <i class="fa-solid fa-file-excel mr-2"></i> Download List PR
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </transition>
 
         <transition name="fade">
             <div v-if="scannerActive" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -949,20 +1216,45 @@
             </div>
         </transition>
 
+        <!-- MODAL PREVIEW FOTO -->
+        <div v-if="previewImage" 
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            @click="previewImage = null">
+            
+            <div class="relative max-w-4xl w-full p-6 animate-zoom-in" @click.stop>
+                <button @click="previewImage = null" 
+                        class="absolute top-8 right-8 text-white/50 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+
+                <img :src="previewImage" 
+                    class="w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl shadow-black/50"
+                    alt="Preview">
+            </div>
+        </div>
+
     </div>
 
     <script>
         const { createApp, ref, computed, onMounted, watch, reactive, nextTick } = Vue;
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxd8dV4-Hz6yQ-scLyyWhY7-oN58kjTWjRapJEXWere7qrKBkEY44YV-gb7LpR5hHGD3A/exec"; // Ganti dengan URL GAS Anda
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbz2IjcD-2NrVxsQFC_NL-uPyk8_aYm9y5a0VGhZ7FEnrBDu_PfzI80htF-63Gy69wicrQ/exec"; // Ganti dengan URL GAS Anda
         const MENU_CONFIG = [
-          { page:'dashboard', label:'Dashboard', icon:'fa-chart-pie', roles:['VIEWER','STAFF','SUPERVISOR','ADMIN'] },
-          { page:'inventory', label:'Cek Stok', icon:'fa-box', roles:['VIEWER','STAFF','SUPERVISOR','ADMIN'] },
-          { page:'user_management', label:'Manajemen User', icon:'fa-users-gear', roles:['ADMIN'] }
+            { name: 'Dashboard', page: 'dashboard', roles: ['ADMIN','STAFF','MANAGER'] },
+            { name: 'Transaksi', page: 'transaksi', roles: ['ADMIN','STAFF'] },
+            { name: 'Inventory', page: 'inventory', roles: ['ADMIN','STAFF','MANAGER','VIEWER'] },
+            { name: 'Master Barang', page: 'master_barang', roles: ['ADMIN'] },
+            { name: 'User Management', page: 'user_management', roles: ['ADMIN'] }
         ];
 
 
         createApp({
             setup() {
+                const ROLE_LANDING_PAGE = {
+                    ADMIN: 'dashboard',
+                    STAFF: 'dashboard',
+                    MANAGER: 'dashboard',
+                    VIEWER: 'inventory'
+                };
                 const isLoggedIn = ref(false);
                 const loading = ref(false);
                 const page = ref('dashboard');
@@ -974,7 +1266,10 @@
                 const userSearchQuery = ref('');
                 const userRole = ref('ADMIN');
                 const inventorySearch = ref('');
-                
+                const lowStockItems = ref([]);
+                const previewImage = ref(null);
+                const stockFilter = ref('all');
+                const categoryFilter = ref('all')
                 
                 const loginData = ref({ username: '', password: '' });
                 const showRegisterModal = ref(false);
@@ -995,8 +1290,8 @@
                 const txType = ref('KELUAR');
                 const txDept = ref('');
                 const txNote = ref('');
-                let html5QrCode = null;
                 const cancellingId = ref(null);
+                let html5QrCode = null;
                 let flowChartInstance = null;
                 let deptChartInstance = null;
 
@@ -1062,6 +1357,27 @@
                     }
                 });
 
+                watch(showLowStock, (val) => {
+                    if (val === true) {
+                        fetchLowStock()
+                    }
+                });
+
+                const navigate = (target) => {
+                    page.value = target
+                    sidebarOpen.value = false
+                };
+
+                const setDefaultPageByRole = () => {
+                    const role = userData.value.role
+
+                    if (role === 'VIEWER') {
+                        page.value = 'inventory'
+                    } else {
+                        page.value = 'dashboard'
+                    }
+                };
+
                 const fetchDashboard = async () => {
                     loading.value = true;
                     try {
@@ -1110,106 +1426,179 @@
                     await fetchDashboard();
                 };
 
-                const fetchMasterData = async () => {
-                    if (userRole.value === 'ADMIN') {
-                        // Jalankan API fetch master barang
+                const fetchLowStock = async () => {
+                    try {
+                        const res = await callAPI('GET_LOW_STOCK_PR', {});
+                        if (res.status === 'success') lowStockItems.value = res.data || [];
+                        else lowStockItems.value = [];
+                                                
+                    } catch(err) {
+                        console.error("Fetch low stock error:", err);
+                        lowStockItems.value = [];
                     }
                 };
 
-                const lowStockItems = computed(() => {
-                    return inventory.value.filter(item => {
-                        const stok = Number(item.stok || 0);
-                        const min = Number(item.minStok || 0);
-                        return stok <= min;
-                    });
-                });
+                const calculateOrderQty = (item) => {
+                    const min = Number(item.minStok) || 0;
+                    const stok = Number(item.stok) || 0;
+                    const target = min * 2;
+
+                    return Math.max(target - stok, 0);
+                };
 
                 const initCharts = () => {
                     nextTick(() => {
-                        // Gunakan ref jika memungkinkan, tapi jika tetap ID pastikan ini:
                         const ctxFlow = document.getElementById('flowChart');
                         const ctxDept = document.getElementById('deptChart');
-
+                        
                         if (!ctxFlow || !ctxDept) return;
 
-                        // 1. Bersihkan Chart Lama
-                        if (flowChartInstance) flowChartInstance.destroy();
-                        if (deptChartInstance) deptChartInstance.destroy();
+                        if (flowChartInstance) {
+                            flowChartInstance.destroy();
+                            flowChartInstance = null;
+                        }
+                        if (deptChartInstance) {
+                            deptChartInstance.destroy();
+                            deptChartInstance = null;
+                        }
 
-                        // --- CHART 1: ARUS BARANG ---
-                        flowChartInstance = new Chart(ctxFlow, {
-                            type: 'line',
-                            data: {
-                                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-                                datasets: [
-                                    { 
-                                        label: 'Masuk', 
-                                        data: [12, 19, 3, 5, 2, 3, 10], 
-                                        borderColor: '#4f46e5', // Indigo-600 (sesuai tema UI-mu)
-                                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                                        fill: true,
-                                        tension: 0.4,
-                                        borderWidth: 3,
-                                        pointRadius: 4
-                                    },
-                                    { 
-                                        label: 'Keluar', 
-                                        data: [8, 12, 10, 2, 1, 5, 8], 
-                                        borderColor: '#f43f5e', 
-                                        backgroundColor: 'rgba(244, 63, 94, 0.1)',
-                                        fill: true,
-                                        tension: 0.4,
-                                        borderWidth: 3,
-                                        pointRadius: 4
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: {
-                                    y: { beginAtZero: true, grid: { display: false } },
-                                    x: { grid: { display: false } }
-                                }
-                            }
-                        });
+                        // ==========================================================
+                        // --- CHART 1: TOP 5 DEPARTEMEN (Barang Keluar Terbanyak) ---
+                        // ==========================================================
+                        
+                        const topDeptCounts = {};
 
-                        // --- CHART 2: DISTRIBUSI DEPT ---
-                        const counts = {};
-                        // Tambahkan pengecekan jika recentTx kosong
+                        // 1. Filter dan kumpulkan total Qty KELUAR per Departemen
                         if (recentTx.value && recentTx.value.length > 0) {
                             recentTx.value.forEach(tx => {
-                                const namaDept = tx.dept || 'Umum'; // Fallback jika dept kosong
-                                counts[namaDept] = (counts[namaDept] || 0) + 1;
+                                const jenis = (tx.jenis || '').toUpperCase();
+                                
+                                // Hanya hitung transaksi barang KELUAR
+                                if (jenis === 'KELUAR' || Number(tx.qty) < 0) {
+                                    const deptName = tx.dept || tx.departemen || 'Umum';
+                                    const qty = Math.abs(Number(tx.qty) || 0); // Pastikan angka positif
+                                    
+                                    topDeptCounts[deptName] = (topDeptCounts[deptName] || 0) + qty;
+                                }
                             });
                         }
 
-                        const labels = Object.keys(counts);
-                        const values = Object.values(counts);
+                        // 2. Ubah object ke array, urutkan (Descending), lalu ambil 5 teratas
+                        const sortedTopDepts = Object.entries(topDeptCounts)
+                            .sort((a, b) => b[1] - a[1]) // Urutkan dari Qty terbesar ke terkecil
+                            .slice(0, 5);                // Ambil 5 data pertama (Top 5)
 
-                        deptChartInstance = new Chart(ctxDept, {
-                            type: 'doughnut',
+                        // 3. Pisahkan nama departemen (label) dan jumlah qty (data)
+                        const topLabels = sortedTopDepts.map(item => item[0]);
+                        const topData = sortedTopDepts.map(item => item[1]);
+
+                        // Fallback jika belum ada data keluar sama sekali
+                        const finalTopLabels = topLabels.length > 0 ? topLabels : ['Belum ada data'];
+                        const finalTopData = topData.length > 0 ? topData : [0];
+
+                        // 4. Render Bar Chart
+                        flowChartInstance = new Chart(ctxFlow, {
+                            type: 'bar', // Ubah dari 'line' menjadi 'bar'
                             data: {
-                                labels: labels.length ? labels : ['Belum ada data'],
+                                labels: finalTopLabels,
                                 datasets: [{
-                                    data: values.length ? values : [1],
-                                    backgroundColor: ['#4f46e5', '#0ea5e9', '#f59e0b', '#10b981', '#ec4899'],
-                                    borderWidth: 0,
-                                    hoverOffset: 10
+                                    label: 'Total Qty Keluar',
+                                    data: finalTopData,
+                                    backgroundColor: 'rgba(244, 63, 94, 0.85)', // Warna Rose/Merah elegan
+                                    borderColor: '#e11d48',
+                                    borderWidth: 1,
+                                    borderRadius: 6, // Sudut batang membulat agar lebih modern
+                                    barThickness: 40 // Lebar batang (bisa disesuaikan)
                                 }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
-                                cutout: '70%', // Membuat doughnut lebih tipis & modern
+                                plugins: {
+                                    legend: { display: false }, // Sembunyikan legend karena hanya 1 dataset
+                                    tooltip: {
+                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                        titleFont: { size: 13, family: "'Inter', sans-serif" },
+                                        bodyFont: { size: 12, family: "'Inter', sans-serif" },
+                                        padding: 10,
+                                        cornerRadius: 8,
+                                        callbacks: {
+                                            label: context => ` ${context.raw} Unit` // Format tooltip angka
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    y: { 
+                                        beginAtZero: true,
+                                        grid: { color: '#f1f5f9', drawBorder: false },
+                                        ticks: { precision: 0, font: { family: "'Inter', sans-serif" } }
+                                    },
+                                    x: { 
+                                        grid: { display: false, drawBorder: false },
+                                        ticks: { font: { family: "'Inter', sans-serif", weight: '600' } }
+                                    }
+                                }
+                            }
+                        });
+
+                        // ==========================================================
+                        // --- CHART 2: DISTRIBUSI DEPARTEMEN (Doughnut) ---
+                        // ==========================================================
+                        // Note: Chart ini saya biarkan menghitung persentase KESELURUHAN 
+                        // departemen (bukan cuma Top 5), sebagai pelengkap Chart 1.
+                        
+                        const deptCounts = {};
+                        if (recentTx.value && recentTx.value.length > 0) {
+                            recentTx.value.forEach(tx => {
+                                const jenis = (tx.jenis || '').toUpperCase();
+                                if (jenis === 'KELUAR' || Number(tx.qty) < 0) { 
+                                    const d = tx.dept || tx.departemen || 'Umum';
+                                    deptCounts[d] = (deptCounts[d] || 0) + Math.abs(Number(tx.qty) || 1);
+                                }
+                            });
+                        }
+
+                        const deptLabels = Object.keys(deptCounts);
+                        const deptValues = Object.values(deptCounts);
+
+                        const finalLabels = deptLabels.length > 0 ? deptLabels : ['Belum ada transaksi keluar'];
+                        const finalValues = deptValues.length > 0 ? deptValues : [1];
+                        const bgColors = deptLabels.length > 0 
+                            ? ['#4f46e5', '#0ea5e9', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6', '#f43f5e'] 
+                            : ['#e2e8f0'];
+
+                        deptChartInstance = new Chart(ctxDept, {
+                            type: 'doughnut',
+                            data: {
+                                labels: finalLabels,
+                                datasets: [{
+                                    data: finalValues,
+                                    backgroundColor: bgColors,
+                                    borderWidth: 2,
+                                    borderColor: '#ffffff',
+                                    hoverOffset: 8
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '75%',
                                 plugins: {
                                     legend: {
-                                        position: 'bottom',
+                                        position: 'right',
                                         labels: {
                                             usePointStyle: true,
                                             padding: 20,
-                                            font: { size: 11, weight: 'bold' }
+                                            font: { size: 12, family: "'Inter', sans-serif", weight: '500' }
+                                        }
+                                    },
+                                    tooltip: { 
+                                        enabled: deptLabels.length > 0,
+                                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                        padding: 12,
+                                        cornerRadius: 8,
+                                        callbacks: {
+                                            label: context => ` ${context.label}: ${context.formattedValue} Unit`
                                         }
                                     }
                                 }
@@ -1233,9 +1622,12 @@
                         localStorage.setItem('token', res.token);
                         userData.value = { nama: res.nama, role: res.role };
                         isLoggedIn.value = true;
+
+                        page.value = ROLE_LANDING_PAGE[res.role] || 'inventory';
+
                         fetchAllData();
                     } else { alert(res.message); }
-                };                
+                };            
 
                 const processTx = async () => {
                     // 1. Validasi awal: Keranjang Kosong
@@ -1300,23 +1692,6 @@
                         alert("Gagal: " + res.message);
                     }
                 };
-
-                watch(scannerActive, (newVal) => {
-                    if (newVal) {
-                        const html5QrCode = new Html5Qrcode("reader");
-                        html5QrCode.start(
-                            { facingMode: "environment" },
-                            { fps: 10 },
-                            (decodedText) => {
-                                console.log("Scanned:", decodedText);
-                                searchQuery.value = decodedText;
-                                searchItems(); // Pastikan fungsi ini tersedia atau gunakan handleScan()
-                                scannerActive.value = false;
-                                html5QrCode.stop();
-                            }
-                        ).catch(err => console.error(err));
-                    }
-                });
 
                 const openScanner = () => {
                     scannerActive.value = true;
@@ -1413,24 +1788,26 @@
                 };
 
                 const handleScan = () => {
-                    const query = searchQuery.value.trim();
+                    const query = searchQuery.value?.toString().trim().toLowerCase();
                     if (!query) return;
 
-                    // Cari barang berdasarkan kode atau nama
-                    const item = inventory.value.find(i => 
-                        i.kode.toLowerCase() === query.toLowerCase() || 
-                        i.nama.toLowerCase() === query.toLowerCase()
-                    );
+                    const item = inventory.value.find(i => {
+                        if (i.status !== 'AKTIF') return false;
 
-                    if (item) {
-                        // Cukup panggil fungsi ini, logika reset dan ambil nilai Qty sudah di-handle di dalamnya
-                        addToCartWithQty(item);
-                    } else {
-                        alert("Barang tidak ditemukan!");
+                        const kode = i.kode?.toString().trim().toLowerCase();
+                        const nama = i.nama?.toString().trim().toLowerCase();
+
+                        return kode === query || nama === query;
+                    });
+
+                    if (!item) {
+                        alert("Barang tidak ditemukan atau sudah dinonaktifkan!");
                         searchQuery.value = '';
+                        return;
                     }
+
+                    addToCartWithQty(item);
                 };
-                // ----------------------------------------------
 
                 const isStockInsufficient = (item) => {
                     if (txType.value !== 'KELUAR') return false;
@@ -1441,6 +1818,10 @@
                 const getMasterStock = (kode) => {
                     const item = inventory.value.find(i => i.kode === kode);
                     return item ? item.stok : 0;
+                };
+
+                const removeFromCart = (kode) => {
+                    cart.value = cart.value.filter(item => item.kode !== kode)
                 };
 
                 const resetTransactionForm = () => {
@@ -1468,51 +1849,39 @@
                     }
                 };
 
-                const menuItems = [
-                    { id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie', roles: ['ADMIN', 'MANAGER', 'STAFF', 'VIEWER'] },
-                    { id: 'transaksi', label: 'Transaksi', icon: 'fa-exchange-alt', roles: ['ADMIN', 'MANAGER', 'STAFF'] },
-                    { id: 'master_barang', label: 'Master Barang', icon: 'fa-database', roles: ['ADMIN', 'MANAGER'] },
-                    { id: 'riwayat', label: 'Riwayat Transaksi', icon: 'fa-history', roles: ['ADMIN', 'MANAGER', 'VIEWER'] },
-                    { id: 'user_management', label: 'Manajemen User', icon: 'fa-users', roles: ['ADMIN'] },
-                    // Tambahkan menu lainnya sesuai kebutuhan
-                ];
-
                 const handleCancelTx = async (tx) => {
-                    // 1. Double protection agar tidak crash
                     const ketString = String(tx.ket || "").toUpperCase();
-                    if (ketString.includes("[DIBATALKAN]") || cancellingId.value) return;
 
-                    if (!confirm(`Batalkan transaksi ${tx.nama}?\nStok akan dikembalikan secara otomatis.`)) return;
+                    if (ketString.includes("[DIBATALKAN]")) return;
+                    if (cancellingId.value === tx.rowId) return;
 
-                    // 2. Kunci tombol
+                    if (!confirm(`Batalkan transaksi ${tx.nama}?`)) return;
+
                     cancellingId.value = tx.rowId;
 
                     try {
-                        const res = await callAPI('CANCEL_TX', { 
-                            token: userData.value.token, 
-                            rowId: tx.rowId 
+                        const res = await callAPI('CANCEL_TX', {
+                        token: userData.value.token,
+                        rowId: tx.rowId
                         });
 
                         if (res.status === 'success') {
-                            // 3. Update data secara lokal agar spinner langsung ganti jadi VOIDED
-                            tx.ket = "[DIBATALKAN] " + (tx.ket || "");
-                            
-                            // 4. Refresh data dashboard jika ada
-                            if (typeof fetchDashboardData === 'function') {
-                                await fetchDashboardData();
-                            }
-                            
-                            alert("✅ Transaksi berhasil dibatalkan!");
+                        tx.ket = "[DIBATALKAN] " + (tx.ket || "");
+                        alert("✅ Transaksi berhasil dibatalkan!");
                         } else {
-                            alert("❌ Gagal: " + res.message);
+                        alert("❌ " + res.message);
                         }
+
                     } catch (e) {
-                        console.error("Error saat void:", e);
-                        alert("🚨 Gangguan koneksi ke server.");
+                        alert("🚨 Gangguan server");
                     } finally {
-                        // 5. Lepas kunci spinner
                         cancellingId.value = null;
                     }
+                };
+
+                const isVoided = (tx) => {
+                    const ketString = String(tx.ket || '').toUpperCase();
+                    return ketString.includes('[DIBATALKAN]');
                 };
 
                 const openAddModal = () => {
@@ -1545,7 +1914,7 @@
                         const res = await callAPI('UPDATE_LOCATION', { 
                             kode: locationForm.value.kode, 
                             lokasiBaru: locationForm.value.lokasi,
-                            userNama: userData.value.name 
+                            userNama: userData.value.name
                         });
 
                         if (res.status === 'success') {
@@ -1616,72 +1985,64 @@
                     }
                 };
 
-                const loadLowStockData = async () => {
-                    const res = await callAPI('GET_LOW_STOCK_PR');
-                    if(res.status === 'success') {
-                        lowStockItems.value = res.data;
-                    }
-                };
-
                 const exportToExcel = () => {
                     try {
                         let dataToExport = [];
                         let fileName = "";
                         const timestamp = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
 
-                        // 1. KONDISI: EKSPOR DARI MODAL STOK KRITIS (PR)
+                        // === 1. EKSPOR STOK KRITIS / LOW STOCK ===
                         if (showLowStock.value) {
-                            if (lowStockItems.value.length === 0) return alert("Data stok kritis kosong!");
-                            
+                            if (!lowStockItems.value.length) return alert("Data stok kritis kosong!");
+
                             dataToExport = lowStockItems.value.map(item => ({
                                 "KODE BARANG": item.kode,
                                 "NAMA BARANG": item.nama,
                                 "SATUAN": item.satuan,
                                 "STOK SAAT INI": item.stok,
-                                "MINIMUM STOK": item.minStok,   // Sesuai backend
-                                "SARAN ORDER (PR)": item.qtyRequest // Sesuai backend
+                                "MINIMUM STOK": item.minStok,
+                                "SARAN ORDER (PR)": item.qtyRequest
                             }));
                             fileName = `Rencana_Order_PR_${timestamp}.xlsx`;
 
-                        // 2. KONDISI: EKSPOR DAFTAR STOK / MASTER BARANG
+                        // === 2. EKSPOR INVENTORY / MASTER BARANG ===
                         } else if (page.value === 'inventory' || page.value === 'master_barang') {
-                            if (inventory.value.length === 0) return alert("Data stok kosong!");
-                            
-                            dataToExport = inventory.value.map(item => ({
+                            if (!filteredInventory.value.length) return alert("Data stok kosong!");
+
+                            // Gunakan filteredInventory agar mengikuti filter halaman
+                            dataToExport = filteredInventory.value.map(item => ({
                                 "KODE": item.kode,
                                 "NAMA BARANG": item.nama,
+                                "CATEGORY": item.category || "-",
                                 "SATUAN": item.satuan,
                                 "LOKASI": item.lokasi || "-",
                                 "STOK": item.stok,
-                                "MIN STOK": item.minStok,
-                                "STATUS": item.stok <= item.minStok ? "LOW" : "AMAN"
+                                "STATUS": item.stok <= item.stokMin ? "LOW" : "AMAN"
                             }));
-                            fileName = `Data_Stok_${timestamp}.xlsx`;
+                            fileName = `Stock_Holding_${timestamp}.xlsx`;
 
-                        // 3. KONDISI: EKSPOR RIWAYAT TRANSAKSI
-                        } else {
-                            if (recentTx.value.length === 0) return alert("Data riwayat kosong!");
-                            
-                            dataToExport = recentTx.value.map(tx => ({
-                                "TANGGAL": tx.tgl,
+                        // === 3. EKSPOR RIWAYAT TRANSAKSI ===
+                        } else if (page.value === 'riwayat') {
+                            if (!filteredHistory.value.length) return alert("Data riwayat kosong!");
+
+                            dataToExport = filteredHistory.value.map(tx => ({
+                                "TANGGAL": tx.tanggal,
                                 "USER": tx.user,
                                 "KODE": tx.kode,
                                 "NAMA BARANG": tx.nama,
                                 "JENIS": tx.jenis,
                                 "QTY": tx.qty,
                                 "DEPT": tx.dept || "-",
-                                "KETERANGAN": tx.ket || "-",
-                                "STATUS": tx.isVoid ? "VOID" : "SUCCESS"
                             }));
                             fileName = `Riwayat_Transaksi_${timestamp}.xlsx`;
                         }
 
-                        // GENERATE FILE MENGGUNAKAN XLSX (SheetJS)
+                        // === GENERATE FILE XLSX MENGGUNAKAN SHEETJS ===
                         const ws = XLSX.utils.json_to_sheet(dataToExport);
                         const wb = XLSX.utils.book_new();
                         XLSX.utils.book_append_sheet(wb, ws, "Data");
-                        
-                        // Pemicu download file ke komputer user
+
+                        // Trigger download file
                         XLSX.writeFile(wb, fileName);
 
                     } catch (e) {
@@ -1689,13 +2050,6 @@
                         alert("Terjadi kesalahan saat mengekspor data.");
                     }
                 };
-
-                const filteredMenu = computed(() => {
-                    return menuItems.filter(item => {
-                        // Jika role user ada di dalam daftar roles menu, tampilkan
-                        return item.roles.includes(userData.value.role);
-                    });
-                });
 
                 const filteredHistory = computed(() => {
                     let data = recentTx.value || [];
@@ -1714,22 +2068,77 @@
                     return data.slice(0, 20);
                 });
 
+                const categoryOptions = computed(() => {
+                    if (!inventory.value) return []
+
+                    const categories = inventory.value
+                        .map(item => item.category)
+                        .filter(cat => cat)
+
+                    return [...new Set(categories)]
+                });
+
                 const searchResults = computed(() => {
                     if (!searchQuery.value) return [];
                     const q = searchQuery.value.toLowerCase();
                     return inventory.value.filter(i => i.nama.toLowerCase().includes(q) || i.kode.toLowerCase().includes(q)).slice(0, 12);
                 });
 
+                const stockRules = {
+                    available: qty => qty > 0,
+                    empty: qty => qty === 0,
+                    all: () => true
+                };
+
                 const filteredInventory = computed(() => {
-                    // Gunakan inventorySearch sesuai variabel yang Anda pakai di v-model
-                    if (!inventorySearch.value) return inventory.value;
-                    
-                    const q = inventorySearch.value.toLowerCase();
-                    return inventory.value.filter(i => {
-                        return i.nama.toLowerCase().includes(q) || 
-                            i.kode.toLowerCase().includes(q) || 
-                            (i.lokasi && i.lokasi.toLowerCase().includes(q)); // Tambahan filter lokasi yang aman
-                    });
+
+                    if (!inventory.value) return []
+
+                    const query = inventorySearch.value?.toLowerCase() || ''
+                    const selectedCategory = categoryFilter.value
+
+                    return inventory.value.filter(item => {
+
+                        if (item.status !== 'AKTIF') return false
+
+                        const qty = Number(item.stok || 0)
+
+                        const stockRules = {
+                        available: qty > 0,
+                        empty: qty === 0,
+                        all: true
+                        }
+
+                        const stockCondition = stockRules[stockFilter.value]
+
+                        const categoryCondition =
+                        selectedCategory === 'all' ||
+                        (item.category && item.category === selectedCategory)
+
+                        const matchesSearch =
+                        (item.nama && item.nama.toLowerCase().includes(query)) ||
+                        (item.kode && item.kode.toLowerCase().includes(query)) ||
+                        (item.lokasi && item.lokasi.toLowerCase().includes(query)) ||
+                        (item.category && item.category.toLowerCase().includes(query))
+
+                        return stockCondition && categoryCondition && matchesSearch
+                    })
+                });
+
+                const searchInMaster = computed(() => {
+
+                    if (!inventory.value) return [];
+
+                    const query = inventorySearch.value?.toLowerCase() || '';
+
+                    if (!query) return inventory.value;
+
+                    return inventory.value.filter(i =>
+                        (i.nama && i.nama.toLowerCase().includes(query)) ||
+                        (i.kode && i.kode.toLowerCase().includes(query)) ||
+                        (i.lokasi && i.lokasi.toLowerCase().includes(query))
+                    );
+
                 });
 
                 const filteredAdminUsers = computed(() => {
@@ -1812,26 +2221,37 @@
                     location.reload();
                 };
 
-                onMounted(() => {
+                onMounted(async () => {
                     const token = localStorage.getItem('token');
+
                     if (token) {
+                        const res = await callAPI('VALIDATE_SESSION');
+
+                        if (res.status === 'success') {
+                        userData.value = {
+                            nama: res.nama,
+                            role: res.role
+                        };
                         isLoggedIn.value = true;
                         fetchAllData();
+                        } else {
+                        handleLogout();
+                        }
                     }
 
                     setTimeout(() => {
                         if (qtyInputRef.value) qtyInputRef.value.focus();
                     }, 800);
                 });
-
+                
                 return {
-                    isLoggedIn, loading, page, filteredMenu, sidebarOpen, scannerActive, showCart, showLowStock, saveNewLocation,
+                    isLoggedIn, loading, page, sidebarOpen, scannerActive, showCart, showLowStock, saveNewLocation, removeFromCart, navigate, stockFilter, categoryOptions, categoryFilter,
                     searchQuery, inventorySearch, showRegisterModal, regData, handleRegister, userRole, openAddModal, showLocationModal, locationForm, openUpdateLocation,
-                    loginData, userData, adminUsers, fetchUsers, approveUser, toggleUser, updateUserRole, deleteUser, userSearchQuery,
+                    loginData, userData, adminUsers, fetchUsers, approveUser, toggleUser, updateUserRole, deleteUser, userSearchQuery, previewImage,
                     filteredAdminUsers, inventory, recentTx, showItemModal, isEditMode, formItem, openAddModal, editItem, saveItem, toggleStatus,
-                    cart, dashData, dashFilter, lowStockItems, inputQty, qtyInputRef, searchInputRef, departments, txType, txDept, txNote,
+                    cart, dashData, dashFilter, lowStockItems, inputQty, qtyInputRef, searchInputRef, departments, txType, txDept, txNote, searchInMaster,
                     handleLogin, handleLogout, fetchDashboard, addToCart, handleScan, processTx, resetTransactionForm, isStockInsufficient, getMasterStock,
-                    fixDriveUrl, handleCancelTx, getJenisClass, exportToExcel, focusSearch, addToCartWithQty,
+                    fixDriveUrl, handleCancelTx, getJenisClass, exportToExcel, focusSearch, addToCartWithQty, isVoided, cancellingId,
                     filteredHistory, searchResults, filteredInventory, openScanner, closeScanner
                 };
             }
